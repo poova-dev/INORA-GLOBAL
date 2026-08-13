@@ -4,12 +4,13 @@
 
 // Firebase Configuration (Standard Web Client Config)
 const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyInoraGlobalExim2026",
-  authDomain: "inora-global-exim.firebaseapp.com",
-  projectId: "inora-global-exim",
-  storageBucket: "inora-global-exim.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789"
+  apiKey: "AIzaSyBMw1w0CFh9hL8mUPeXiWewA0wi04bpnGA",
+  authDomain: "inora-global.firebaseapp.com",
+  projectId: "inora-global",
+  storageBucket: "inora-global.firebasestorage.app",
+  messagingSenderId: "462070493874",
+  appId: "1:462070493874:web:a4cf32557d07304cf6cfab",
+  measurementId: "G-KBQMPRMVN4"
 };
 
 let db = null;
