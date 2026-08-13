@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | INORA GLOBAL EXIM</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.08) 0%, rgba(6, 13, 25, 0.98) 80%), var(--navy-darker);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .admin-login-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--navy-card);
+      border: 1px solid var(--navy-border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .admin-login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .admin-login-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-top: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .admin-login-subtitle {
+      font-size: 0.85rem;
+      color: var(--slate-light);
+      margin-top: 0.3rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--slate-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1.5px solid var(--navy-border);
+      border-radius: 8px;
+      background: rgba(6, 13, 25, 0.6);
+      color: var(--white);
+      font-size: 0.95rem;
+      transition: all var(--transition-fast);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    }
+
+    .login-error-alert {
+      display: none;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #EF4444;
+      color: #FCA5A5;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-login-card">
+    <div class="admin-login-header">
+      <div class="logo-wrapper" style="justify-content: center; margin-bottom: 0.5rem;">
+        <img src="../assets/images/logo-web.png" alt="INORA Logo" class="logo-img">
+        <div class="logo-text" style="text-align: left;">
+          <span class="logo-brand">INORA GLOBAL EXIM</span>
+          <span class="logo-tagline">B2B TRADE PORTAL</span>
+        </div>
+      </div>
+      <h1 class="admin-login-title">ADMINISTRATOR SIGN IN</h1>
+      <p class="admin-login-subtitle">Enter your authorized credentials to access B2B lead management.</p>
+    </div>
+
+    <div class="login-error-alert" id="login-error-msg"></div>
+
+    <form id="admin-login-form">
+      <div class="form-group">
+        <label for="admin-email" class="form-label">Admin Email Address</label>
+        <input type="email" id="admin-email" class="form-input" placeholder="admin@inoraglobal.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label for="admin-password" class="form-label">Password</label>
+        <input type="password" id="admin-password" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 1rem; padding: 0.9rem;">
+        SIGN IN TO DASHBOARD <i class="fas fa-arrow-right"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <script src="../js/firebase.js"></script>
+  <script src="js/admin-auth.js"></script>
+</body>
+</html>

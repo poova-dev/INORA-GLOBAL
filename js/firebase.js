@@ -33,10 +33,11 @@ try {
  * @returns {Promise<boolean>}
  */
 async function saveB2BEnquiry(enquiryData) {
+  const isFirestoreActive = (typeof firebase !== 'undefined' && firebase.firestore && db);
   const payload = {
     ...enquiryData,
-    timestamp: new Date().toISOString(),
-    status: "NEW_ENQUIRY",
+    timestamp: isFirestoreActive ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
+    status: enquiryData.status || "NEW_ENQUIRY",
     platform: "INORA_GLOBAL_WEB"
   };
 

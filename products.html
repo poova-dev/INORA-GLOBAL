@@ -6,6 +6,7 @@
   <title>Export Products Catalogue | INORA GLOBAL EXIM</title>
   <meta name="description" content="Explore Indian Rice, Spices, Botanical Powders, Fresh Produce, Peanuts, and Dehydrated Vegetables exported by INORA GLOBAL EXIM. Custom packaging and bulk supply.">
   <link rel="canonical" href="https://inoraglobal.com/products.html">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +23,7 @@
   <header class="site-header">
     <div class="container header-container">
       <a href="index.html" class="logo-wrapper">
-        <div class="logo-icon">IG</div>
+        <img src="assets/images/logo-web.png" alt="INORA GLOBAL EXIM Logo" class="logo-img">
         <div class="logo-text">
           <span class="logo-brand">INORA GLOBAL EXIM</span>
           <span class="logo-tagline">BEYOND BORDERS, BUILDING TRUST.</span>
@@ -68,11 +69,20 @@
   </div>
 
   <!-- PAGE HERO HEADER -->
-  <section style="background: var(--navy-darker); color: var(--white); padding: 7rem 0 4rem 0; text-align: center; border-bottom: 1px solid var(--navy-border);">
-    <div class="container">
-      <span class="section-tag">PREMIUM CATALOGUE</span>
-      <h1 class="section-title" style="color: var(--white);">EXPORT PRODUCTS DIRECTORY</h1>
-      <p style="color: var(--slate-light); max-width: 650px; margin: 0 auto; font-size: 1.05rem;">
+  <section class="page-hero">
+    <div class="export-stamp-hero">BEYOND BORDERS<br>&bull; EST. INDIA &bull;</div>
+    <div class="container page-hero-container">
+      <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+        <a href="index.html">HOME</a>
+        <i class="fas fa-chevron-right breadcrumb-separator"></i>
+        <span class="breadcrumb-current">PRODUCTS CATALOGUE</span>
+      </nav>
+      <div class="page-hero-badge">
+        <span class="badge-dot"></span>
+        <span>PREMIUM CATALOGUE</span>
+      </div>
+      <h1 class="page-hero-title">EXPORT PRODUCTS DIRECTORY</h1>
+      <p class="page-hero-desc">
         Sourced directly from India's premier processing centers under strict quality management. Available in bulk, custom, or private-label packaging.
       </p>
     </div>
@@ -81,6 +91,29 @@
   <!-- PRODUCTS GRID SECTION -->
   <section class="products-section">
     <div class="container">
+      <!-- Filter & Search Controls Bar -->
+      <div class="products-control-bar">
+        <div class="products-control-top">
+          <div class="product-search-wrapper">
+            <i class="fas fa-search product-search-icon"></i>
+            <input type="text" id="catalog-search-input" class="product-search-input" placeholder="Search products (e.g., Basmati, Pepper, Moringa, Onion)..." aria-label="Search Export Products">
+          </div>
+          <div class="catalog-counter" id="catalog-counter">
+            Showing 6 of 6 Export Categories
+          </div>
+        </div>
+
+        <div class="product-filter-tabs">
+          <button class="filter-tab active" data-category="all">All Products</button>
+          <button class="filter-tab" data-category="rice">Rice</button>
+          <button class="filter-tab" data-category="spices">Spices</button>
+          <button class="filter-tab" data-category="powders">Botanical Powders</button>
+          <button class="filter-tab" data-category="produce">Fresh Produce</button>
+          <button class="filter-tab" data-category="peanut">Groundnut / Peanuts</button>
+          <button class="filter-tab" data-category="dehydrated">Dehydrated</button>
+        </div>
+      </div>
+
       <div class="products-grid" id="catalog-products-grid"></div>
     </div>
   </section>
@@ -111,7 +144,7 @@
       <div class="footer-grid">
         <div>
           <div class="logo-wrapper" style="margin-bottom: 1rem;">
-            <div class="logo-icon">IG</div>
+            <img src="assets/images/logo-web.png" alt="INORA GLOBAL EXIM Logo" class="logo-img">
             <div class="logo-text">
               <span class="logo-brand">INORA GLOBAL EXIM</span>
               <span class="logo-tagline">BEYOND BORDERS, BUILDING TRUST.</span>

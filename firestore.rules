@@ -1,0 +1,19 @@
+// INORA GLOBAL EXIM - Firestore Security Rules
+// Paste this configuration into your Firebase Console:
+// Firestore Database -> Rules -> Publish
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /enquiries/{doc} {
+      // Public forms can submit leads (must provide fullName and email)
+      allow create: if request.resource.data.keys().hasAll(['fullName','email']);
+      
+      // Reading lead lists and updating lead status requires an authenticated admin session
+      allow read, update: if request.auth != null;
+      
+      // Accidental deletion protection
+      allow delete: if false;
+    }
+  }
+}

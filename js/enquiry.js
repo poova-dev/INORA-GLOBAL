@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
+      // Tag the source form type
+      data.formType = form.id === 'quote-form' ? 'quote'
+                   : form.id === 'sourcing-form' ? 'sourcing'
+                   : form.id === 'contact-form' ? 'contact'
+                   : 'product_enquiry';
+
       // Simple validation
       if (!data.fullName || !data.email || !data.message) {
         showToast("Please fill in all required fields marked with *", "error");

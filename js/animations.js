@@ -1,13 +1,27 @@
 /* ==========================================================================
-   INORA GLOBAL EXIM - High-Performance Animation Engine (Optimized for 60FPS)
+   INORA GLOBAL EXIM - High-Performance Immersive Animation Engine (60FPS)
+   Includes: Preloader Curtain, Scroll Progress Bar, Ambient Spotlight Glow,
+             Motion Text Effect, Lenis Smooth Scroll, GSAP Stagger Reveals
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 1. Initialize Cinematic Preloader Curtain
+  initPreloaderController();
+
+  // 2. Initialize Scroll Progress Indicator
+  initScrollProgressBar();
+
+  // 3. Initialize Ambient Cursor Glow Spotlight
+  initCursorSpotlight();
+
   // Check for prefers-reduced-motion
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (prefersReducedMotion) {
     return;
   }
+
+  // Motion Text Effect Splitter & Renderer
+  initMotionTextEffect();
 
   // Official GSAP + Lenis Integration Loop (Single Unified Ticker)
   if (typeof Lenis !== 'undefined') {
@@ -40,13 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Hero Section Reveal
-    gsap.from('.hero-badge, .hero-title, .hero-subheadline, .hero-description, .hero-actions', {
+    // Animate split Motion Text Effect words in Hero section
+    const heroWords = document.querySelectorAll('.hero-title .motion-word, .hero-subheadline .motion-word');
+    if (heroWords.length > 0) {
+      gsap.fromTo(heroWords, 
+        { opacity: 0, y: 28, filter: 'blur(6px)', rotateX: -25 },
+        { opacity: 1, y: 0, filter: 'blur(0px)', rotateX: 0, duration: 0.75, stagger: 0.05, ease: 'power3.out', delay: 0.5 }
+      );
+    }
+
+    // Hero Section Actions & Description Reveal
+    gsap.from('.hero-badge, .hero-description, .hero-actions', {
       opacity: 0,
       y: 20,
       duration: 0.7,
       stagger: 0.1,
-      ease: 'power2.out'
+      ease: 'power2.out',
+      delay: 0.7
     });
 
     // Trust Bar Items Stagger Reveal
@@ -150,3 +174,135 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+/**
+ * Preloader Controller
+ */
+function initPreloaderController() {
+  const preloader = document.getElementById('inora-preloader');
+  const bar = document.getElementById('preloader-bar');
+  const counter = document.getElementById('preloader-counter');
+
+  if (!preloader) return;
+
+  // Check if session flag is set for subpage fast loading
+  if (sessionStorage.getItem('inora_loader_seen') === 'true') {
+    preloader.classList.add('loaded');
+    return;
+  }
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.floor(Math.random() * 15) + 10;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+
+      if (bar) bar.style.width = '100%';
+      if (counter) counter.textContent = '100%';
+
+      setTimeout(() => {
+        preloader.classList.add('loaded');
+        sessionStorage.setItem('inora_loader_seen', 'true');
+      }, 300);
+    } else {
+      if (bar) bar.style.width = progress + '%';
+      if (counter) counter.textContent = progress + '%';
+    }
+  }, 50);
+}
+
+/**
+ * Scroll Progress Indicator
+ */
+function initScrollProgressBar() {
+  const bar = document.getElementById('scroll-progress-bar');
+  if (!bar) return;
+
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    bar.style.width = scrollPercent + '%';
+  });
+}
+
+/**
+ * Ambient Cursor Spotlight Glow
+ */
+function initCursorSpotlight() {
+  const glow = document.getElementById('cursor-glow');
+  if (!glow) return;
+
+  let mouseX = 0, mouseY = 0;
+  let currentX = 0, currentY = 0;
+  let isMoving = false;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!isMoving) {
+      isMoving = true;
+      requestAnimationFrame(animateSpotlight);
+    }
+  });
+
+  function animateSpotlight() {
+    currentX += (mouseX - currentX) * 0.15;
+    currentY += (mouseY - currentY) * 0.15;
+
+    glow.style.left = currentX + 'px';
+    glow.style.top = currentY + 'px';
+
+    if (Math.abs(mouseX - currentX) > 0.1 || Math.abs(mouseY - currentY) > 0.1) {
+      requestAnimationFrame(animateSpotlight);
+    } else {
+      isMoving = false;
+    }
+  }
+}
+
+/**
+ * Motion Text Effect Helper
+ */
+function initMotionTextEffect() {
+  const targets = document.querySelectorAll('.hero-title, .hero-subheadline, .page-hero-title');
+  targets.forEach(target => {
+    if (target.getAttribute('data-motion-split') === 'true') return;
+    target.setAttribute('data-motion-split', 'true');
+
+    splitElementWords(target);
+  });
+}
+
+function splitElementWords(element) {
+  const childNodes = Array.from(element.childNodes);
+  element.innerHTML = '';
+
+  childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent;
+      const words = text.split(/\s+/).filter(Boolean);
+      words.forEach(word => {
+        const wrap = document.createElement('span');
+        wrap.className = 'motion-word-wrap';
+        wrap.innerHTML = `<span class="motion-word">${word}</span>`;
+        element.appendChild(wrap);
+        element.appendChild(document.createTextNode(' '));
+      });
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const clone = node.cloneNode(false);
+      const text = node.textContent;
+      const words = text.split(/\s+/).filter(Boolean);
+      words.forEach(word => {
+        const wrap = document.createElement('span');
+        wrap.className = 'motion-word-wrap';
+        wrap.innerHTML = `<span class="motion-word">${word}</span>`;
+        clone.appendChild(wrap);
+        clone.appendChild(document.createTextNode(' '));
+      });
+      element.appendChild(clone);
+      element.appendChild(document.createTextNode(' '));
+    }
+  });
+}
