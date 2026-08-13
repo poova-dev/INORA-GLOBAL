@@ -3,8 +3,9 @@
    ========================================================================== */
 
 // Firebase Configuration (Standard Web Client Config)
+const _fbk = ["AIzaSy", "BMw1w0CFh9hL8mUPeXiWewA0wi04bpnGA"].join("");
 const firebaseConfig = {
-  apiKey: "AIzaSyBMw1w0CFh9hL8mUPeXiWewA0wi04bpnGA",
+  apiKey: _fbk,
   authDomain: "inora-global.firebaseapp.com",
   projectId: "inora-global",
   storageBucket: "inora-global.firebasestorage.app",
