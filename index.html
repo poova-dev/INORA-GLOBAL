@@ -132,8 +132,14 @@
     </div>
   </div>
 
-  <!-- HERO SECTION WITH 3D GLOBE & BOTTOM-LEFT AIRPLANE ANIMATION -->
+  <!-- HERO SECTION WITH FULL-BLEED BACKGROUND VIDEO & 3D TRADE FLIGHT RADAR -->
   <section class="hero-section">
+    <!-- FULL-BLEED BACKGROUND LOOP VIDEO -->
+    <video class="hero-full-bg-video" autoplay loop muted playsinline poster="assets/images/logo-web.png">
+      <source src="assets/images/Inora Hero section.mp4" type="video/mp4">
+    </video>
+    <div class="hero-full-video-overlay"></div>
+
     <div class="export-stamp-hero">BEYOND BORDERS<br>&bull; EST. INDIA &bull;</div>
     <div class="container hero-grid">
       <div class="hero-content">
@@ -157,18 +163,12 @@
             REQUEST A QUOTE
           </a>
         </div>
-      </div>
-
-      <!-- 3D Globe & Cargo Flight Canvas Container -->
-      <div class="hero-canvas-container" id="hero-globe-canvas-container">
-        <canvas id="hero-globe-canvas"></canvas>
-
         <!-- Dynamic Flight Radar HUD Overlay -->
-        <div class="flight-status-hud">
+        <div class="flight-status-hud" style="position: relative; bottom: auto; left: auto; margin-top: 2.5rem; display: inline-flex;">
           <div class="hud-pulse"></div>
           <div>
             <div style="font-weight: 700; text-transform: uppercase; color: var(--gold); letter-spacing: 0.5px;"><i class="fas fa-plane"></i> AIR & <i class="fas fa-ship"></i> SEA EXPORT DISPATCH</div>
-            <div style="color: var(--slate-light); font-size: 0.7rem;">INDIA ORIGIN HUB &rarr; UAE | SAUDI | QATAR | SINGAPORE | EUROPE</div>
+            <div style="color: var(--slate-light); font-size: 0.72rem;">INDIA ORIGIN HUB &rarr; UAE | SAUDI | QATAR | SINGAPORE | EUROPE</div>
           </div>
         </div>
       </div>
