@@ -43,21 +43,27 @@ async function saveB2BEnquiry(enquiryData) {
     platform: "INORA_GLOBAL_WEB"
   };
 
+  // Always persist in local storage cache for immediate offline & admin availability
+  try {
+    const existing = JSON.parse(localStorage.getItem("inora_enquiries") || "[]");
+    existing.unshift({
+      ...payload,
+      id: "loc_" + Date.now(),
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem("inora_enquiries", JSON.stringify(existing));
+  } catch (e) {
+    console.warn("LocalStorage cache warning:", e);
+  }
+
   try {
     if (db) {
       await db.collection("enquiries").add(payload);
       console.log("Enquiry saved to Firestore:", payload);
-    } else {
-      // Fallback local storage log
-      const existing = JSON.parse(localStorage.getItem("inora_enquiries") || "[]");
-      existing.push(payload);
-      localStorage.setItem("inora_enquiries", JSON.stringify(existing));
-      console.log("Enquiry saved to local cache fallback:", payload);
     }
     return true;
   } catch (error) {
-    console.error("Error submitting enquiry:", error);
-    // Still resolve true so user experience isn't interrupted
+    console.error("Error submitting enquiry to Firestore:", error);
     return true;
   }
 }

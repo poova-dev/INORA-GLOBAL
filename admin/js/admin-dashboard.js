@@ -47,36 +47,115 @@ document.addEventListener('DOMContentLoaded', () => {
 function initDashboard() {
   if (typeof firebase !== 'undefined' && firebase.firestore && db && firebase.apps.length) {
     // Real-time Firestore snapshot listener
-    db.collection('enquiries')
-      .orderBy('timestamp', 'desc')
-      .onSnapshot((snapshot) => {
-        allEnquiries = [];
-        snapshot.forEach((doc) => {
-          allEnquiries.push({
-            id: doc.id,
-            ...doc.data()
-          });
+    db.collection('enquiries').onSnapshot((snapshot) => {
+      let firestoreItems = [];
+      snapshot.forEach((doc) => {
+        firestoreItems.push({
+          id: doc.id,
+          ...doc.data()
         });
+      });
+
+      const localItems = JSON.parse(localStorage.getItem('inora_enquiries') || '[]');
+
+      // Combine Firestore and LocalStorage items, removing duplicates by id or timestamp
+      const combined = [...firestoreItems];
+      localItems.forEach(loc => {
+        if (!combined.some(c => c.id === loc.id || (c.email === loc.email && c.message === loc.message && c.message))) {
+          combined.push(loc);
+        }
+      });
+
+      // Sort by date descending
+      combined.sort((a, b) => {
+        const timeA = a.timestamp ? (a.timestamp.seconds ? a.timestamp.seconds * 1000 : new Date(a.timestamp).getTime()) : 0;
+        const timeB = b.timestamp ? (b.timestamp.seconds ? b.timestamp.seconds * 1000 : new Date(b.timestamp).getTime()) : 0;
+        return timeB - timeA;
+      });
+
+      if (combined.length === 0) {
+        loadLocalFallbackData();
+      } else {
+        allEnquiries = combined;
         updateMetrics();
         renderDashboardTable();
-      }, (error) => {
-        console.error("Firestore snapshot error:", error);
-        loadLocalFallbackData();
-      });
+      }
+    }, (error) => {
+      console.warn("Firestore snapshot warning, loading local fallback data:", error);
+      loadLocalFallbackData();
+    });
   } else {
     loadLocalFallbackData();
   }
 }
 
 /**
- * LocalStorage Fallback for offline testing
+ * LocalStorage & Sample Data Fallback
  */
 function loadLocalFallbackData() {
   const stored = JSON.parse(localStorage.getItem('inora_enquiries') || '[]');
-  allEnquiries = stored.map((item, idx) => ({
-    id: `local_${idx}`,
-    ...item
-  }));
+  if (stored.length > 0) {
+    allEnquiries = stored.map((item, idx) => ({
+      id: item.id || `local_${idx}`,
+      ...item
+    }));
+  } else {
+    // Demo / Sample B2B leads when initial setup is opened
+    allEnquiries = [
+      {
+        id: "demo_1",
+        formType: "quote",
+        fullName: "Marcus Vance",
+        companyName: "Vance Foods Global LLC",
+        country: "United States",
+        email: "m.vance@vancefoods.com",
+        phone: "+1 (555) 234-8900",
+        businessType: "Importer / Wholesaler",
+        productTitle: "Premium Indian Rice (Ponni & Basmati)",
+        quantityNeeded: "2 x 20ft FCL (50 MT)",
+        packagingSpec: "25kg PP / Jute Bags",
+        destinationPort: "Port of Houston, USA",
+        message: "We require immediate quotation for 50 MT Ponni Parboiled Rice with custom branding bags.",
+        status: "NEW_ENQUIRY",
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: "demo_2",
+        formType: "sourcing",
+        fullName: "Elena Rostova",
+        companyName: "EuroSpices GmbH",
+        country: "Germany",
+        email: "e.rostova@eurospices.de",
+        phone: "+49 30 1234567",
+        businessType: "Food Manufacturer",
+        productTitle: "Pure Indian Spices (Whole Black Pepper 550g/l)",
+        quantityNeeded: "1 x 20ft FCL (18 MT)",
+        packagingSpec: "50kg Vacuum Sealed Gunny Bags",
+        destinationPort: "Hamburg Port, Germany",
+        message: "Looking for ASTA quality Whole Black Pepper with clean laboratory analysis certificate.",
+        status: "CONTACTED",
+        timestamp: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: "demo_3",
+        formType: "product_enquiry",
+        fullName: "Shariff Al-Mansoor",
+        companyName: "Al-Mansoor Trading Est.",
+        country: "UAE",
+        email: "info@almansoor-trading.ae",
+        phone: "+971 4 987 6543",
+        businessType: "Distributor",
+        productTitle: "Value-Added Moringa & Botanical Powders",
+        quantityNeeded: "5 MT",
+        packagingSpec: "25kg HDPE Drums",
+        destinationPort: "Jebel Ali Port, Dubai",
+        message: "Kindly share product specs sheet and best FOB / CIF Jebel Ali pricing.",
+        status: "NEW_ENQUIRY",
+        timestamp: new Date(Date.now() - 172800000).toISOString()
+      }
+    ];
+    localStorage.setItem('inora_enquiries', JSON.stringify(allEnquiries));
+  }
   updateMetrics();
   renderDashboardTable();
 }
@@ -108,7 +187,7 @@ function updateMetrics() {
  * Filter & Render Enquiries Table
  */
 function renderDashboardTable() {
-  const tbody = document.getElementById('admin-table-body');
+  const tbody = document.getElementById('enquiries-table-body') || document.getElementById('admin-table-body');
   if (!tbody) return;
 
   const search = currentSearchQuery.trim().toLowerCase();

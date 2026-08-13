@@ -354,36 +354,4 @@ function splitElementWords(element) {
   });
 }
 
-// 4. Initialize 3D Interactive Card Gyroscopic Tilt & Glare Effect
-init3DCardTiltEffect();
-
-/**
- * 3D Interactive Gyroscopic Tilt & Glare Effect for Product Cards
- */
-function init3DCardTiltEffect() {
-  document.addEventListener('mousemove', (e) => {
-    const card = e.target.closest('.product-card');
-    if (!card) return;
-
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-
-    const tiltX = (0.5 - y) * 16;
-    const tiltY = (x - 0.5) * 16;
-
-    card.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-8px) scale(1.02)`;
-
-    const shine = card.querySelector('.card-3d-shine');
-    if (shine) {
-      shine.style.background = `radial-gradient(circle at ${(x * 100).toFixed(1)}% ${(y * 100).toFixed(1)}%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 70%)`;
-    }
-  });
-
-  document.addEventListener('mouseout', (e) => {
-    const card = e.target.closest('.product-card');
-    if (card && (!e.relatedTarget || !card.contains(e.relatedTarget))) {
-      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(1)';
-    }
-  });
-}
+// 4. Clean Card Hover Interactions (3D tilt removed per specification)

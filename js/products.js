@@ -181,8 +181,7 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
   }
 
   container.innerHTML = filteredProducts.map(product => `
-    <div class="product-card" data-tilt data-id="${product.id}">
-      <div class="card-3d-shine"></div>
+    <div class="product-card" data-id="${product.id}">
       <div class="product-image-wrap">
         <img src="${product.image}" alt="${product.title}" loading="lazy">
         <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>

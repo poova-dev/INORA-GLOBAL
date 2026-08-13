@@ -732,35 +732,16 @@ body:hover .cursor-glow {
   box-shadow: 0 10px 30px rgba(6, 13, 25, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   border: 1.5px solid rgba(212, 175, 55, 0.3);
   border-top: 4px solid var(--gold);
-  transition: transform 0.25s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.35s ease, border-color 0.3s ease;
   display: flex;
   flex-direction: column;
   height: 100%;
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  will-change: transform;
 }
 
 .product-card:hover {
-  box-shadow: 0 24px 50px rgba(6, 13, 25, 0.2), 0 0 30px rgba(212, 175, 55, 0.3);
+  transform: translateY(-8px);
+  box-shadow: 0 24px 50px rgba(6, 13, 25, 0.18), 0 0 25px rgba(212, 175, 55, 0.25);
   border-color: var(--gold);
-}
-
-.card-3d-shine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 6;
-  border-radius: 16px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.product-card:hover .card-3d-shine {
-  opacity: 1;
 }
 
 .product-card .export-stamp {
