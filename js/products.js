@@ -2,7 +2,7 @@
    INORA GLOBAL EXIM - Products Database & Dynamic Renderer
    ========================================================================== */
 
-const INORA_PRODUCTS = [
+let INORA_PRODUCTS = [
   {
     id: "rice",
     category: "RICE",
@@ -12,14 +12,13 @@ const INORA_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80",
     items: ["Ponni Rice", "Basmati Rice", "Non-Basmati Rice"],
     specs: {
-      origin: "India (Tamil Nadu, Punjab, Andhra Pradesh)",
+      origin: "India",
       type: "Raw / Parboiled / Steam",
-      moisture: "Max 12-14%",
-      admixture: "Max 1%",
-      brokenGrains: "1%, 5%, 25% (as per buyer spec)",
-      packaging: "5kg, 10kg, 25kg, 50kg PP / Non-Woven / Jute Bags",
-      moq: "1 x 20ft FCL (approx. 24-25 MT)",
-      capacity: "500+ MT Monthly"
+      moisture: "Based on buyer requirement",
+      brokenGrains: "As per buyer specification",
+      packaging: "5kg, 10kg, 25kg, 50kg PP / Jute Bags",
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   },
   {
@@ -31,13 +30,12 @@ const INORA_PRODUCTS = [
     image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80",
     items: ["Black Pepper", "Cumin Seeds", "Turmeric", "Red Chili", "Green Cardamom", "Fennel Seeds"],
     specs: {
-      origin: "India (Kerala, Rajasthan, Gujarat, Tamil Nadu)",
+      origin: "India",
       type: "Whole / Ground",
-      purity: "99% min",
-      extraneous: "Max 1%",
-      packaging: "25kg / 50kg Gunny / PP Bags or Custom Vacuum Pack",
-      moq: "5 MT to 1 FCL",
-      capacity: "300+ MT Monthly"
+      purity: "Based on buyer requirement",
+      packaging: "25kg / 50kg Gunny or Custom Vacuum Pack",
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   },
   {
@@ -51,11 +49,10 @@ const INORA_PRODUCTS = [
     specs: {
       origin: "India",
       form: "Fine Powder (80-100 Mesh)",
-      color: "Natural Characteristic Color",
-      additives: "100% Pure, No Artificial Colors or Preservatives",
-      packaging: "20kg / 25kg HDPE Drums or Aluminum Foil Pouches",
-      moq: "1000 kg",
-      capacity: "100+ MT Monthly"
+      additives: "100% Pure, No Artificial Preservatives",
+      packaging: "20kg / 25kg Drums or Foil Pouches",
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   },
   {
@@ -69,10 +66,10 @@ const INORA_PRODUCTS = [
     specs: {
       origin: "India",
       grading: "Export Grade A",
-      shelfLife: "Maintained via Cold Chain Cold Storage Packaging",
-      packaging: "Corrugated Box / Mesh Bags (5kg, 10kg, 15kg)",
-      moq: "Air Freight (1 MT+) or Reefer Container",
-      capacity: "Weekly Shipments"
+      shelfLife: "Maintained via Cold Chain Packaging",
+      packaging: "Corrugated Box / Mesh Bags",
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   },
   {
@@ -84,13 +81,12 @@ const INORA_PRODUCTS = [
     image: "assets/images/peanuts.jpg",
     items: ["Bold Peanut", "Java Peanut", "Blanched Peanuts", "Peanut Kernels"],
     specs: {
-      origin: "India (Gujarat, Andhra Pradesh, Tamil Nadu)",
+      origin: "India",
       counts: "38/42, 40/50, 50/60, 60/70, 70/80, 80/90",
-      aflatoxin: "Below 4 ppb / 10 ppb (as per destination limit)",
-      moisture: "Max 7-8%",
+      moisture: "Based on buyer requirement",
       packaging: "25kg / 50kg Vacuum Jute Bags or PP Bags",
-      moq: "1 x 20ft FCL (19 MT)",
-      capacity: "400+ MT Monthly"
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   },
   {
@@ -104,13 +100,40 @@ const INORA_PRODUCTS = [
     specs: {
       origin: "India",
       forms: "Flakes, Chopped, Minced, Granules, Powder",
-      moisture: "Max 5-6%",
-      packaging: "14kg, 20kg Poly-lined Cartons or Kraft Bags",
-      moq: "1 MT to 1 FCL",
-      capacity: "200+ MT Monthly"
+      moisture: "Based on buyer requirement",
+      packaging: "Poly-lined Cartons or Kraft Bags",
+      moq: "Based on buyer requirement",
+      capacity: "Based on buyer requirement"
     }
   }
 ];
+
+/**
+ * Initialize Firestore Dynamic Products Listener
+ */
+function initFirestoreProducts() {
+  if (typeof firebase !== 'undefined' && firebase.firestore && db) {
+    db.collection('products').onSnapshot((snapshot) => {
+      if (!snapshot.empty) {
+        const firestoreProducts = [];
+        snapshot.forEach((doc) => {
+          firestoreProducts.push({
+            id: doc.id,
+            ...doc.data()
+          });
+        });
+        INORA_PRODUCTS = firestoreProducts;
+        renderProductGrid('products-grid');
+      }
+    }, (err) => {
+      console.warn("Firestore products fetch warning:", err);
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initFirestoreProducts();
+});
 
 // Helper to render product grid dynamically on catalog page with category and search filter support
 function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = '') {

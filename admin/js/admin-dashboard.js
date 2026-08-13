@@ -401,3 +401,239 @@ function showToast(msg, type = "info") {
     setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+/* ==========================================================================
+   PRODUCT CATALOGUE CRUD MANAGEMENT
+   ========================================================================== */
+
+let adminProductsList = [];
+
+// Initialize Products Firestore Listener
+function initProductsAdmin() {
+  if (typeof firebase !== 'undefined' && firebase.firestore && db) {
+    db.collection('products').onSnapshot(async (snapshot) => {
+      if (snapshot.empty) {
+        // Seed default products if collection is brand new
+        console.log("Seeding initial product catalogue into Firestore...");
+        const defaultProds = typeof INORA_PRODUCTS !== 'undefined' ? INORA_PRODUCTS : [];
+        for (const prod of defaultProds) {
+          await db.collection('products').doc(prod.id).set(prod);
+        }
+      } else {
+        adminProductsList = [];
+        snapshot.forEach(doc => {
+          adminProductsList.push({ docId: doc.id, ...doc.data() });
+        });
+        renderProductsAdminTable();
+      }
+    }, (err) => {
+      console.error("Error loading products:", err);
+    });
+  }
+}
+
+// Section Switcher (Enquiries vs Products)
+function switchAdminSection(section, element) {
+  document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
+  if (element) element.classList.add('active');
+
+  const enquiriesSec = document.getElementById('section-enquiries');
+  const productsSec = document.getElementById('section-products');
+  const titleEl = document.getElementById('admin-current-section-title');
+  const exportBtn = document.getElementById('export-csv-btn');
+
+  if (section === 'products') {
+    if (enquiriesSec) enquiriesSec.style.display = 'none';
+    if (productsSec) productsSec.style.display = 'block';
+    if (titleEl) titleEl.textContent = "LIVE PRODUCT CATALOGUE MANAGEMENT";
+    if (exportBtn) exportBtn.style.display = 'none';
+    initProductsAdmin();
+  } else {
+    if (productsSec) productsSec.style.display = 'none';
+    if (enquiriesSec) enquiriesSec.style.display = 'block';
+    if (titleEl) titleEl.textContent = "B2B ENQUIRIES & QUOTE LEADS";
+    if (exportBtn) exportBtn.style.display = 'block';
+  }
+}
+
+// Render Products Table
+function renderProductsAdminTable() {
+  const tbody = document.getElementById('products-crud-table-body');
+  if (!tbody) return;
+
+  if (adminProductsList.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 2rem; color: var(--slate-light);">
+          No export products found. Click <strong>ADD NEW PRODUCT</strong> above to create one.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = adminProductsList.map(prod => {
+    const itemsText = Array.isArray(prod.items) ? prod.items.join(', ') : (prod.items || '-');
+    const moqText = prod.specs ? (prod.specs.moq || 'Based on requirement') : 'Based on requirement';
+    const imgUrl = prod.image || 'assets/images/logo-web.png';
+
+    return `
+      <tr>
+        <td>
+          <img src="${escapeHTML(imgUrl)}" alt="${escapeHTML(prod.title)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--navy-border);">
+        </td>
+        <td>
+          <strong style="color: var(--white); font-size: 0.9rem;">${escapeHTML(prod.title)}</strong>
+          <div style="font-size: 0.75rem; color: var(--slate-light);">ID: ${escapeHTML(prod.id || prod.docId)}</div>
+        </td>
+        <td><span class="form-badge badge-product">${escapeHTML(prod.category)}</span></td>
+        <td><strong style="color: var(--gold); font-size: 0.8rem;">${escapeHTML(prod.stampLabel || prod.category)}</strong></td>
+        <td style="max-width: 200px; font-size: 0.8rem; color: var(--slate-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${escapeHTML(itemsText)}
+        </td>
+        <td style="font-size: 0.8rem; color: var(--slate-light);">
+          MOQ: ${escapeHTML(moqText)}
+        </td>
+        <td>
+          <div style="display: flex; gap: 0.4rem;">
+            <button onclick="openEditProductModal('${escapeHTML(prod.docId)}')" class="btn btn-navy" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;" title="Edit Product">
+              <i class="fas fa-edit text-gold"></i>
+            </button>
+            <button onclick="deleteProductItem('${escapeHTML(prod.docId)}')" class="btn btn-navy" style="padding: 0.4rem 0.6rem; font-size: 0.75rem; color: #EF4444;" title="Delete Product">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Modal Handlers
+function openAddProductModal() {
+  const form = document.getElementById('product-crud-form');
+  if (form) form.reset();
+
+  document.getElementById('pm-doc-id').value = '';
+  document.getElementById('product-modal-title').innerHTML = '<i class="fas fa-box-open"></i> Add Export Product';
+  document.getElementById('product-modal-overlay').classList.add('open');
+}
+
+function openEditProductModal(docId) {
+  const prod = adminProductsList.find(p => p.docId === docId || p.id === docId);
+  if (!prod) return;
+
+  document.getElementById('pm-doc-id').value = prod.docId || prod.id;
+  document.getElementById('pm-id').value = prod.id || '';
+  document.getElementById('pm-stamp').value = prod.stampLabel || prod.category || '';
+  document.getElementById('pm-title').value = prod.title || '';
+  document.getElementById('pm-category').value = prod.category || '';
+  document.getElementById('pm-description').value = prod.description || '';
+  document.getElementById('pm-items').value = Array.isArray(prod.items) ? prod.items.join(', ') : (prod.items || '');
+  document.getElementById('pm-image-url').value = prod.image || '';
+  document.getElementById('pm-origin').value = prod.specs ? (prod.specs.origin || 'India') : 'India';
+  document.getElementById('pm-packaging').value = prod.specs ? (prod.specs.packaging || '5kg, 10kg, 25kg, 50kg PP / Jute Bags') : '5kg, 10kg, 25kg, 50kg PP / Jute Bags';
+  document.getElementById('pm-moq').value = prod.specs ? (prod.specs.moq || 'Based on buyer requirement') : 'Based on buyer requirement';
+  document.getElementById('pm-capacity').value = prod.specs ? (prod.specs.capacity || 'Based on buyer requirement') : 'Based on buyer requirement';
+
+  document.getElementById('product-modal-title').innerHTML = '<i class="fas fa-edit"></i> Edit Export Product';
+  document.getElementById('product-modal-overlay').classList.add('open');
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('product-modal-overlay');
+  if (modal) modal.classList.remove('open');
+}
+
+// Cloudinary File Upload Integration
+async function handleProductCloudinaryUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById('cloudinary-upload-status');
+  const btn = document.getElementById('cloudinary-upload-btn');
+
+  try {
+    if (statusEl) statusEl.textContent = "Uploading photo to Cloudinary...";
+    if (btn) btn.disabled = true;
+
+    if (typeof uploadToCloudinary !== 'function') {
+      throw new Error("Cloudinary service script not loaded.");
+    }
+
+    const result = await uploadToCloudinary(file);
+    document.getElementById('pm-image-url').value = result.url;
+    if (statusEl) statusEl.textContent = "Photo uploaded successfully!";
+    showToast("Photo uploaded to Cloudinary!");
+  } catch (err) {
+    console.error("Upload error:", err);
+    if (statusEl) statusEl.textContent = "Upload failed: " + err.message;
+    showToast("Upload failed: " + err.message, "error");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// Save Product Form Handler
+document.addEventListener('DOMContentLoaded', () => {
+  const prodForm = document.getElementById('product-crud-form');
+  if (prodForm) {
+    prodForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('save-product-submit-btn');
+
+      const docId = document.getElementById('pm-doc-id').value.trim();
+      const prodId = document.getElementById('pm-id').value.trim().toLowerCase().replace(/\s+/g, '-');
+      const stampLabel = document.getElementById('pm-stamp').value.trim().toUpperCase();
+      const title = document.getElementById('pm-title').value.trim();
+      const category = document.getElementById('pm-category').value.trim().toUpperCase();
+      const description = document.getElementById('pm-description').value.trim();
+      const itemsRaw = document.getElementById('pm-items').value.trim();
+      const items = itemsRaw.split(',').map(i => i.trim()).filter(Boolean);
+      const image = document.getElementById('pm-image-url').value.trim();
+      const origin = document.getElementById('pm-origin').value.trim();
+      const packaging = document.getElementById('pm-packaging').value.trim();
+      const moq = document.getElementById('pm-moq').value.trim();
+      const capacity = document.getElementById('pm-capacity').value.trim();
+
+      const payload = {
+        id: prodId,
+        stampLabel,
+        title,
+        category,
+        description,
+        items,
+        image,
+        specs: { origin, packaging, moq, capacity },
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      try {
+        if (submitBtn) submitBtn.disabled = true;
+
+        const targetId = docId || prodId;
+        await db.collection('products').doc(targetId).set(payload, { merge: true });
+
+        showToast("Product catalog updated successfully!");
+        closeProductModal();
+      } catch (err) {
+        console.error("Error saving product:", err);
+        showToast("Failed to save product: " + err.message, "error");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+});
+
+// Delete Product
+async function deleteProductItem(docId) {
+  if (!confirm("Are you sure you want to delete this export product from the live catalog?")) return;
+
+  try {
+    await db.collection('products').doc(docId).delete();
+    showToast("Product deleted from live catalog.");
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    showToast("Failed to delete product: " + err.message, "error");
+  }
+}

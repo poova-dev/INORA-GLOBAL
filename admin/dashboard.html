@@ -416,9 +416,12 @@
           <i class="fas fa-envelope"></i> <span>Contact Messages</span>
         </a>
         <a class="sidebar-link" onclick="switchAdminTab('product_enquiry', this)">
-          <i class="fas fa-boxes"></i> <span>Product Inquiries</span>
+          <i class="fas fa-inbox"></i> <span>Product Inquiries</span>
         </a>
-        <a href="../index.html" target="_blank" class="sidebar-link" style="margin-top: 1.5rem; border-top: 1px dashed var(--navy-border); padding-top: 1rem;">
+        <a class="sidebar-link" id="nav-link-products" onclick="switchAdminSection('products', this)" style="border-top: 1px solid var(--navy-border); margin-top: 0.5rem; padding-top: 0.8rem;">
+          <i class="fas fa-boxes text-gold"></i> <span style="font-weight: 700;">Manage Products</span>
+        </a>
+        <a href="../index.html" target="_blank" class="sidebar-link" style="margin-top: 1rem; border-top: 1px dashed var(--navy-border); padding-top: 1rem;">
           <i class="fas fa-external-link-alt text-gold"></i> <span>Live Site Preview</span>
         </a>
       </nav>
@@ -454,79 +457,119 @@
 
       <!-- Container Body -->
       <div class="admin-container">
-        <!-- Metrics Row -->
-        <div class="admin-metrics-grid">
-          <div class="metric-card">
-            <div class="metric-card-label">Total Submissions</div>
-            <div class="metric-card-value" id="stat-total-submissions">0</div>
+        <!-- SECTION 1: LEADS & ENQUIRIES -->
+        <div id="section-enquiries">
+          <!-- Metrics Row -->
+          <div class="admin-metrics-grid">
+            <div class="metric-card">
+              <div class="metric-card-label">Total Submissions</div>
+              <div class="metric-card-value" id="stat-total-submissions">0</div>
+            </div>
+            <div class="metric-card" style="border-color: var(--gold);">
+              <div class="metric-card-label" style="color: var(--gold);">Unread / New Enquiries</div>
+              <div class="metric-card-value text-gold" id="stat-new-enquiries">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Quote Requests</div>
+              <div class="metric-card-value" id="stat-quote-count">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Custom Sourcing</div>
+              <div class="metric-card-value" id="stat-sourcing-count">0</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-card-label">Contact / Products</div>
+              <div class="metric-card-value" id="stat-contact-count">0</div>
+            </div>
           </div>
-          <div class="metric-card" style="border-color: var(--gold);">
-            <div class="metric-card-label" style="color: var(--gold);">Unread / New Enquiries</div>
-            <div class="metric-card-value text-gold" id="stat-new-enquiries">0</div>
+
+          <!-- Controls Bar -->
+          <div class="admin-controls-bar">
+            <div class="admin-filter-group">
+              <label style="font-size: 0.82rem; font-weight: 700; color: var(--slate-light);">Form Type:</label>
+              <select id="filter-form-type" class="admin-select">
+                <option value="all">All Form Submissions</option>
+                <option value="quote">Quote Requests (#quote-form)</option>
+                <option value="sourcing">Custom Sourcing (#sourcing-form)</option>
+                <option value="contact">Contact Us (#contact-form)</option>
+                <option value="product_enquiry">Product Catalogue Enquiry</option>
+              </select>
+
+              <label style="font-size: 0.82rem; font-weight: 700; color: var(--slate-light); margin-left: 0.5rem;">Status:</label>
+              <select id="filter-status" class="admin-select">
+                <option value="all">All Statuses</option>
+                <option value="NEW_ENQUIRY">NEW_ENQUIRY (Unread)</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="CLOSED">CLOSED</option>
+              </select>
+            </div>
+
+            <div>
+              <input type="text" id="admin-search-input" class="admin-input" placeholder="Search name, email, country, product..." style="width: 260px;">
+            </div>
           </div>
-          <div class="metric-card">
-            <div class="metric-card-label">Quote Requests</div>
-            <div class="metric-card-value" id="stat-quote-count">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-card-label">Custom Sourcing</div>
-            <div class="metric-card-value" id="stat-sourcing-count">0</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-card-label">Contact / Products</div>
-            <div class="metric-card-value" id="stat-contact-count">0</div>
+
+          <!-- Lead Data Table -->
+          <div class="admin-table-container">
+            <table class="admin-table" id="enquiries-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Form Type</th>
+                  <th>Buyer Name</th>
+                  <th>Company & Country</th>
+                  <th>Product / Specs</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="enquiries-table-body">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem; color: var(--slate-light);">
+                    <i class="fas fa-spinner fa-spin text-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    Loading B2B Lead Enquiries...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Controls Bar -->
-        <div class="admin-controls-bar">
-          <div class="admin-filter-group">
-            <label style="font-size: 0.82rem; font-weight: 700; color: var(--slate-light);">Form Type:</label>
-            <select id="filter-form-type" class="admin-select">
-              <option value="all">All Form Submissions</option>
-              <option value="quote">Quote Requests (#quote-form)</option>
-              <option value="sourcing">Custom Sourcing (#sourcing-form)</option>
-              <option value="contact">Contact Us (#contact-form)</option>
-              <option value="product_enquiry">Product Catalogue Enquiry</option>
-            </select>
-
-            <label style="font-size: 0.82rem; font-weight: 700; color: var(--slate-light); margin-left: 0.5rem;">Status:</label>
-            <select id="filter-status" class="admin-select">
-              <option value="all">All Statuses</option>
-              <option value="NEW_ENQUIRY">NEW_ENQUIRY (Unread)</option>
-              <option value="CONTACTED">CONTACTED</option>
-              <option value="CLOSED">CLOSED</option>
-            </select>
+        <!-- SECTION 2: PRODUCT CATALOG MANAGEMENT (CRUD) -->
+        <div id="section-products" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: var(--navy-light); padding: 1.2rem 1.5rem; border-radius: 12px; border: 1px solid var(--navy-border);">
+            <div>
+              <h2 style="font-size: 1.2rem; font-weight: 800; color: var(--white); margin-bottom: 0.2rem;"><i class="fas fa-boxes text-gold"></i> Live Product Catalogue</h2>
+              <p style="font-size: 0.82rem; color: var(--slate-light);">Add, edit, update specifications, or delete export product lines in real-time.</p>
+            </div>
+            <button onclick="openAddProductModal()" class="btn btn-gold" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+              <i class="fas fa-plus-circle"></i> ADD NEW PRODUCT
+            </button>
           </div>
 
-          <div>
-            <input type="text" id="admin-search-input" class="admin-input" placeholder="Search name, email, country, product..." style="width: 260px;">
+          <div class="admin-table-container">
+            <table class="admin-table" id="products-crud-table">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Stamp</th>
+                  <th>Export Items</th>
+                  <th>Specs Overview</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="products-crud-table-body">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 3rem; color: var(--slate-light);">
+                    <i class="fas fa-spinner fa-spin text-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    Loading Product Catalogue from Firestore...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-
-        <!-- Lead Data Table -->
-        <div class="admin-table-container">
-          <table class="admin-table" id="enquiries-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Form Type</th>
-                <th>Buyer Name</th>
-                <th>Company & Country</th>
-                <th>Product / Specs</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="enquiries-table-body">
-              <tr>
-                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--slate-light);">
-                  <i class="fas fa-spinner fa-spin text-gold" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
-                  Loading B2B Lead Enquiries...
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </main>
@@ -587,6 +630,90 @@
         <a id="modal-email-link" href="#" class="btn btn-navy" style="font-size: 0.85rem;"><i class="fas fa-envelope"></i> Email Buyer</a>
         <a id="modal-whatsapp-link" href="#" target="_blank" class="btn btn-gold" style="font-size: 0.85rem;"><i class="fab fa-whatsapp"></i> WhatsApp CTA</a>
       </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT ADD / EDIT MODAL -->
+  <div class="admin-modal-overlay" id="product-modal-overlay">
+    <div class="admin-modal" style="max-width: 650px;">
+      <button class="modal-close-btn" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+      <div style="font-size: 1.2rem; font-weight: 800; color: var(--gold); margin-bottom: 0.5rem;" id="product-modal-title">
+        <i class="fas fa-box-open"></i> Add Export Product
+      </div>
+      <p style="font-size: 0.85rem; color: var(--slate-light); margin-bottom: 1.2rem;">Fill in product category details, item varieties, image URL or upload image file via Cloudinary.</p>
+
+      <form id="product-crud-form">
+        <input type="hidden" id="pm-doc-id" value="">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label class="detail-lbl">Product ID Slug (e.g. rice, spices)</label>
+            <input type="text" id="pm-id" class="admin-input" style="width: 100%;" required placeholder="e.g. rice">
+          </div>
+          <div>
+            <label class="detail-lbl">Stamp Label</label>
+            <input type="text" id="pm-stamp" class="admin-input" style="width: 100%;" required placeholder="e.g. RICE">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label class="detail-lbl">Product Title</label>
+            <input type="text" id="pm-title" class="admin-input" style="width: 100%;" required placeholder="e.g. Premium Indian Rice">
+          </div>
+          <div>
+            <label class="detail-lbl">Category Name</label>
+            <input type="text" id="pm-category" class="admin-input" style="width: 100%;" required placeholder="e.g. RICE">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label class="detail-lbl">Product Description</label>
+          <textarea id="pm-description" class="admin-input" style="width: 100%; height: 60px;" required placeholder="Brief description of agricultural product..."></textarea>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label class="detail-lbl">Export Varieties / Items (Comma separated)</label>
+          <input type="text" id="pm-items" class="admin-input" style="width: 100%;" required placeholder="e.g. Ponni Rice, Basmati Rice, Non-Basmati Rice">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label class="detail-lbl">Product Image (URL or Cloudinary Upload)</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="pm-image-url" class="admin-input" style="flex: 1;" required placeholder="https://... or upload file">
+            <input type="file" id="pm-file-input" accept="image/*" style="display: none;" onchange="handleProductCloudinaryUpload(this)">
+            <button type="button" class="btn btn-navy" onclick="document.getElementById('pm-file-input').click()" style="padding: 0.5rem 0.8rem; font-size: 0.8rem;" id="cloudinary-upload-btn">
+              <i class="fas fa-upload text-gold"></i> Upload Photo
+            </button>
+          </div>
+          <div id="cloudinary-upload-status" style="font-size: 0.75rem; color: var(--gold); margin-top: 0.3rem;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <label class="detail-lbl">Origin</label>
+            <input type="text" id="pm-origin" class="admin-input" style="width: 100%;" value="India">
+          </div>
+          <div>
+            <label class="detail-lbl">Packaging</label>
+            <input type="text" id="pm-packaging" class="admin-input" style="width: 100%;" value="5kg, 10kg, 25kg, 50kg PP / Jute Bags">
+          </div>
+          <div>
+            <label class="detail-lbl">Minimum Order Quantity (MOQ)</label>
+            <input type="text" id="pm-moq" class="admin-input" style="width: 100%;" value="Based on buyer requirement">
+          </div>
+          <div>
+            <label class="detail-lbl">Monthly Capacity</label>
+            <input type="text" id="pm-capacity" class="admin-input" style="width: 100%;" value="Based on buyer requirement">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" onclick="closeProductModal()" class="btn btn-navy" style="font-size: 0.85rem;">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="font-size: 0.85rem;" id="save-product-submit-btn">
+            <i class="fas fa-save"></i> Save Product
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

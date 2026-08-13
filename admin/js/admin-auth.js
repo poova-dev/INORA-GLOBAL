@@ -33,19 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
           await firebase.auth().signInWithEmailAndPassword(email, password);
           window.location.href = 'dashboard.html';
         } else {
-          // Development / Offline Fallback session simulation
-          if (email && password.length >= 6) {
-            localStorage.setItem('inora_admin_session', JSON.stringify({ email, time: Date.now() }));
-            window.location.href = 'dashboard.html';
-          } else {
-            throw new Error("Invalid password (minimum 6 characters).");
-          }
+          throw new Error("Authentication service is unavailable. Please check your network connection.");
         }
       } catch (err) {
         console.error("Admin Auth error:", err);
         if (errorEl) {
           errorEl.style.display = 'block';
-          errorEl.textContent = err.message || "Failed to sign in. Please verify credentials.";
+          errorEl.textContent = err.message || "Failed to sign in. Please verify your admin credentials.";
         }
       } finally {
         if (submitBtn) {
@@ -64,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Route Guard for Admin Dashboard
+ * Strict Route Guard for Admin Dashboard
  */
 function checkAuthRouteGuard() {
   if (typeof firebase !== 'undefined' && firebase.auth && firebase.apps.length) {
@@ -78,16 +72,8 @@ function checkAuthRouteGuard() {
       }
     });
   } else {
-    // Offline / Local fallback check
-    const session = localStorage.getItem('inora_admin_session');
-    if (!session) {
-      console.warn("No active admin session found; redirecting to login.html");
-      window.location.href = 'login.html';
-    } else {
-      const data = JSON.parse(session);
-      const userEmailEl = document.getElementById('admin-user-email');
-      if (userEmailEl) userEmailEl.textContent = data.email || 'admin@inoraglobal.com';
-    }
+    console.error("Firebase Auth not initialized. Access denied.");
+    window.location.href = 'login.html';
   }
 }
 
@@ -103,7 +89,6 @@ function handleAdminLogout() {
       window.location.href = 'login.html';
     });
   } else {
-    localStorage.removeItem('inora_admin_session');
     window.location.href = 'login.html';
   }
 }
