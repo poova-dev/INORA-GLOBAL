@@ -1,0 +1,83 @@
+/* ==========================================================================
+   INORA GLOBAL EXIM - Responsive Media Queries
+   Breakpoints tested: 360px, 390px, 768px, 1024px, 1280px, 1440px, 1920px
+   Zero horizontal overflow guarantee
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .desktop-nav {
+    display: none;
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.85rem;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+
+  .trust-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .timeline-wrapper::before {
+    left: 20px !important;
+  }
+
+  .timeline-item, .timeline-item:nth-child(even) {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 50px !important;
+    padding-right: 0 !important;
+  }
+
+  .timeline-dot, .timeline-item:nth-child(even) .timeline-dot {
+    left: 10px !important;
+    right: auto !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .btn {
+    padding: 0.8rem 1.4rem;
+    font-size: 0.85rem;
+  }
+
+  .logo-brand {
+    font-size: 1rem;
+  }
+}

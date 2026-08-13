@@ -1,0 +1,110 @@
+/* ==========================================================================
+   INORA GLOBAL EXIM - Base Reset & Core Styles
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: #1E293B;
+  background-color: var(--navy-darker);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  line-height: 1.6;
+  background-color: var(--light-grey);
+  overflow-x: hidden;
+  position: relative;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+ul, ol {
+  list-style: none;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--navy-darker);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--navy-border);
+  border-radius: 5px;
+  border: 2px solid var(--navy-darker);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--navy);
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.text-gold { color: var(--gold) !important; }
+.text-blue { color: var(--royal-blue-light) !important; }
+.text-white { color: var(--white) !important; }
+.text-slate { color: var(--slate-muted) !important; }
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold);
+  background: rgba(212, 175, 55, 0.08);
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.section-desc {
+  font-size: 1.125rem;
+  color: var(--slate-muted);
+  max-width: 680px;
+  margin-bottom: 2.5rem;
+}

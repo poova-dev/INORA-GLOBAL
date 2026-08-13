@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request A B2B Export Quote | INORA GLOBAL EXIM</title>
+  <meta name="description" content="Submit your product requirements, destination port, quantity, and packaging specifications to receive a formal quotation from INORA GLOBAL EXIM.">
+  <link rel="canonical" href="https://inoraglobal.com/quote.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- STICKY HEADER -->
+  <header class="site-header">
+    <div class="container header-container">
+      <a href="index.html" class="logo-wrapper">
+        <div class="logo-icon">IG</div>
+        <div class="logo-text">
+          <span class="logo-brand">INORA GLOBAL EXIM</span>
+          <span class="logo-tagline">BEYOND BORDERS, BUILDING TRUST.</span>
+        </div>
+      </a>
+
+      <nav class="desktop-nav">
+        <a href="index.html" class="nav-link">HOME</a>
+        <a href="about.html" class="nav-link">ABOUT US</a>
+        <a href="products.html" class="nav-link">PRODUCTS</a>
+        <a href="sourcing.html" class="nav-link">GLOBAL SOURCING</a>
+        <a href="export-process.html" class="nav-link">EXPORT PROCESS</a>
+        <a href="quality.html" class="nav-link">QUALITY</a>
+        <a href="markets.html" class="nav-link">MARKETS</a>
+        <a href="contact.html" class="nav-link">CONTACT</a>
+      </nav>
+
+      <div class="header-right">
+        <a href="quote.html" class="btn btn-gold active">REQUEST A QUOTE</a>
+        <button class="mobile-toggle" id="mobile-toggle"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div>
+      <button class="drawer-close" id="drawer-close">&times;</button>
+      <div class="mobile-nav-links">
+        <a href="index.html" class="mobile-nav-link">HOME</a>
+        <a href="about.html" class="mobile-nav-link">ABOUT US</a>
+        <a href="products.html" class="mobile-nav-link">PRODUCTS</a>
+        <a href="sourcing.html" class="mobile-nav-link">GLOBAL SOURCING</a>
+        <a href="export-process.html" class="mobile-nav-link">EXPORT PROCESS</a>
+        <a href="quality.html" class="mobile-nav-link">QUALITY</a>
+        <a href="markets.html" class="mobile-nav-link">MARKETS</a>
+        <a href="contact.html" class="mobile-nav-link">CONTACT</a>
+      </div>
+    </div>
+    <div style="margin-top: 2rem;">
+      <a href="quote.html" class="btn btn-gold" style="width: 100%;">REQUEST A QUOTE</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section style="background: var(--navy-dark); color: var(--white); padding: 7rem 0 4rem 0; text-align: center; border-bottom: 1px solid var(--navy-border);">
+    <div class="container">
+      <span class="section-tag">FORMAL B2B QUOTATION</span>
+      <h1 class="section-title" style="color: var(--white);">REQUEST A PRODUCT QUOTE</h1>
+      <p style="color: var(--slate-light); max-width: 650px; margin: 0 auto; font-size: 1.05rem;">
+        Provide your export requirements below. Our commercial department will review your specifications and issue a competitive FOB or CIF quotation.
+      </p>
+    </div>
+  </section>
+
+  <!-- FORM SECTION -->
+  <section style="padding: 5rem 0; background: var(--navy-darker);">
+    <div class="container">
+      <div class="enquiry-form-card">
+        <form class="inora-enquiry-form" id="quote-form">
+          <input type="text" name="website_url_check" style="display:none !important;" tabindex="-1">
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" name="fullName" class="form-control" placeholder="e.g. Johnathan Miller" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Company Name *</label>
+              <input type="text" name="companyName" class="form-control" placeholder="e.g. Apex Commodities FZE" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Country *</label>
+              <input type="text" name="country" class="form-control" placeholder="e.g. United Arab Emirates" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Business Type *</label>
+              <select name="businessType" class="form-control" required style="cursor: pointer;">
+                <option value="">Select Business Profile</option>
+                <option value="Importer">Importer</option>
+                <option value="Distributor">Distributor</option>
+                <option value="Wholesaler">Wholesaler</option>
+                <option value="Retailer">Retailer</option>
+                <option value="Manufacturer">Food Manufacturer</option>
+                <option value="Trading Company">Trading Company</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Product Required *</label>
+              <input type="text" name="productRequired" id="quote-product-input" class="form-control" placeholder="e.g. Ponni Rice / Black Pepper" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Required Quantity *</label>
+              <input type="text" name="quantity" class="form-control" placeholder="e.g. 1 x 20ft FCL / 25 Metric Tons" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Packaging Requirement</label>
+              <input type="text" name="packaging" class="form-control" placeholder="e.g. 25kg PP Bags / Vacuum Packs">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Destination Port *</label>
+              <input type="text" name="destinationPort" class="form-control" placeholder="e.g. Jebel Ali Port, Dubai" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Target Price (USD/MT) - Optional</label>
+              <input type="text" name="targetPrice" class="form-control" placeholder="e.g. USD 850 / MT">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email Address *</label>
+              <input type="email" name="email" class="form-control" placeholder="e.g. john@apex.com" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">WhatsApp / Phone *</label>
+              <input type="tel" name="phone" class="form-control" placeholder="+971 50 123 4567" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Additional Message / Quality Specs</label>
+              <textarea name="message" class="form-control" placeholder="Specify any grade requirements, lab certificate needs, or delivery timelines."></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top: 2.5rem; text-align: center;">
+            <button type="submit" class="btn btn-gold" style="padding: 1.1rem 3.5rem; font-size: 1rem;">
+              SUBMIT QUOTATION REQUEST <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOATING WHATSAPP -->
+  <a href="https://wa.me/917200819993?text=Hello%20INORA%20GLOBAL%20EXIM,%20I%20want%20to%20request%20a%20quotation." target="_blank" rel="noopener" class="floating-whatsapp" aria-label="WhatsApp Enquiry">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <div>&copy; 2026 INORA GLOBAL EXIM. All Rights Reserved.</div>
+        <div>Indian Merchant Exporter &bull; Global Sourcing Partner</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/firebase.js"></script>
+  <script src="js/enquiry.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const preProduct = urlParams.get('product');
+      if (preProduct) {
+        const input = document.getElementById('quote-product-input');
+        if (input) input.value = decodeURIComponent(preProduct);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Specification & Details | INORA GLOBAL EXIM</title>
+  <meta name="description" content="Technical product specifications, packaging options, origin details, and quotation request for INORA GLOBAL EXIM export products.">
+  <link rel="canonical" href="https://inoraglobal.com/product-detail.html">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- STICKY HEADER -->
+  <header class="site-header">
+    <div class="container header-container">
+      <a href="index.html" class="logo-wrapper">
+        <div class="logo-icon">IG</div>
+        <div class="logo-text">
+          <span class="logo-brand">INORA GLOBAL EXIM</span>
+          <span class="logo-tagline">BEYOND BORDERS, BUILDING TRUST.</span>
+        </div>
+      </a>
+
+      <nav class="desktop-nav">
+        <a href="index.html" class="nav-link">HOME</a>
+        <a href="about.html" class="nav-link">ABOUT US</a>
+        <a href="products.html" class="nav-link active">PRODUCTS</a>
+        <a href="sourcing.html" class="nav-link">GLOBAL SOURCING</a>
+        <a href="export-process.html" class="nav-link">EXPORT PROCESS</a>
+        <a href="quality.html" class="nav-link">QUALITY</a>
+        <a href="markets.html" class="nav-link">MARKETS</a>
+        <a href="contact.html" class="nav-link">CONTACT</a>
+      </nav>
+
+      <div class="header-right">
+        <a href="quote.html" class="btn btn-gold">REQUEST A QUOTE</a>
+        <button class="mobile-toggle" id="mobile-toggle"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE DRAWER -->
+  <div class="mobile-drawer" id="mobile-drawer">
+    <div>
+      <button class="drawer-close" id="drawer-close">&times;</button>
+      <div class="mobile-nav-links">
+        <a href="index.html" class="mobile-nav-link">HOME</a>
+        <a href="about.html" class="mobile-nav-link">ABOUT US</a>
+        <a href="products.html" class="mobile-nav-link">PRODUCTS</a>
+        <a href="sourcing.html" class="mobile-nav-link">GLOBAL SOURCING</a>
+        <a href="export-process.html" class="mobile-nav-link">EXPORT PROCESS</a>
+        <a href="quality.html" class="mobile-nav-link">QUALITY</a>
+        <a href="markets.html" class="mobile-nav-link">MARKETS</a>
+        <a href="contact.html" class="mobile-nav-link">CONTACT</a>
+      </div>
+    </div>
+    <div style="margin-top: 2rem;">
+      <a href="quote.html" class="btn btn-gold" style="width: 100%;">REQUEST A QUOTE</a>
+    </div>
+  </div>
+
+  <!-- DYNAMIC PRODUCT DETAIL CONTAINER -->
+  <section style="padding: 8rem 0 6rem 0; background: var(--grey-bg);" id="product-detail-section">
+    <div class="container" id="product-detail-container">
+      <!-- Injected via JavaScript -->
+    </div>
+  </section>
+
+  <!-- FLOATING WHATSAPP -->
+  <a href="https://wa.me/917200819993?text=Hello%20INORA%20GLOBAL%20EXIM,%20I%20am%20inquiring%20about%20product%20specifications." target="_blank" rel="noopener" class="floating-whatsapp" aria-label="WhatsApp Enquiry">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <div>&copy; 2026 INORA GLOBAL EXIM. All Rights Reserved.</div>
+        <div>Indian Merchant Exporter &bull; Global Sourcing Partner</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const catId = urlParams.get('cat') || 'spices';
+      
+      const product = INORA_PRODUCTS.find(p => p.id === catId) || INORA_PRODUCTS[0];
+      const container = document.getElementById('product-detail-container');
+
+      if (container && product) {
+        document.title = `${product.title} - Specifications | INORA GLOBAL EXIM`;
+        
+        container.innerHTML = `
+          <div style="margin-bottom: 2rem;">
+            <a href="products.html" style="color: var(--royal-blue); font-weight: 700; font-size: 0.9rem;">
+              <i class="fas fa-arrow-left"></i> Back to Products Directory
+            </a>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; background: var(--white); border-radius: 16px; padding: 3rem; border: 1px solid var(--grey-border); box-shadow: var(--shadow-md);">
+            <div>
+              <div style="border-radius: 12px; overflow: hidden; height: 380px; margin-bottom: 1.5rem; background: var(--navy-dark);">
+                <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <div style="background: var(--navy-dark); color: var(--white); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--navy-border);">
+                <h4 style="color: var(--gold-primary); margin-bottom: 0.5rem; font-size: 1rem;">Export Varieties & Items</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                  ${product.items.map(item => `<span style="background: rgba(255,255,255,0.1); color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600;">${item}</span>`).join('')}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <span class="section-tag">${product.category}</span>
+              <h1 style="font-size: 2.3rem; font-weight: 900; color: var(--navy-dark); margin-bottom: 1rem;">${product.title}</h1>
+              <p style="color: var(--slate-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem;">${product.description}</p>
+
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--navy-dark); margin-bottom: 1rem; border-bottom: 2px solid var(--gold-primary); padding-bottom: 0.4rem; display: inline-block;">
+                TECHNICAL SPECIFICATIONS
+              </h3>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.5rem; font-size: 0.9rem;">
+                ${Object.entries(product.specs).map(([key, value]) => `
+                  <div style="background: var(--grey-bg); padding: 0.9rem 1.2rem; border-radius: 8px; border: 1px solid #E2E8F0;">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--slate-muted); font-weight: 700;">${key.replace(/([A-Z])/g, ' $1')}</div>
+                    <div style="font-weight: 700; color: var(--navy-dark); margin-top: 0.2rem;">${value}</div>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div style="display: flex; gap: 1rem;">
+                <a href="quote.html?product=${encodeURIComponent(product.title)}" class="btn btn-gold" style="padding: 1rem 2rem; font-size: 0.95rem;">
+                  REQUEST PRODUCT QUOTE <i class="fas fa-paper-plane"></i>
+                </a>
+                <a href="https://wa.me/917200819993?text=Hello,%20I%20want%20a%20quote%20for%20${encodeURIComponent(product.title)}" target="_blank" class="btn btn-navy" style="padding: 1rem 1.5rem; font-size: 0.95rem;">
+                  <i class="fab fa-whatsapp" style="color: #25D366;"></i> WHATSAPP US
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
