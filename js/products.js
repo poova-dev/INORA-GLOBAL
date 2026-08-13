@@ -10,7 +10,7 @@ const INORA_PRODUCTS = [
     title: "Premium Indian Rice",
     description: "Sourced directly from top agricultural belts in India. High aroma, superior grain length, and uniform quality.",
     image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80",
-    items: ["Ponni Rice", "Basmati Rice", "Non-Basmati Rice", "1121 Sella Basmati", "IR64 Parboiled"],
+    items: ["Ponni Rice", "Basmati Rice", "Non-Basmati Rice"],
     specs: {
       origin: "India (Tamil Nadu, Punjab, Andhra Pradesh)",
       type: "Raw / Parboiled / Steam",
@@ -159,6 +159,7 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
 
   container.innerHTML = filteredProducts.map(product => `
     <div class="product-card" data-tilt data-id="${product.id}">
+      <div class="card-3d-shine"></div>
       <div class="product-image-wrap">
         <img src="${product.image}" alt="${product.title}" loading="lazy">
         <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
