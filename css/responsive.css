@@ -10,15 +10,17 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1180px) {
   .desktop-nav {
-    display: none;
+    display: none !important;
   }
 
   .mobile-toggle {
-    display: block;
+    display: flex !important;
   }
+}
 
+@media (max-width: 1024px) {
   .hero-grid {
     grid-template-columns: 1fr;
     text-align: center;

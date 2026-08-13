@@ -6,6 +6,7 @@ const INORA_PRODUCTS = [
   {
     id: "rice",
     category: "RICE",
+    stampLabel: "RICE",
     title: "Premium Indian Rice",
     description: "Sourced directly from top agricultural belts in India. High aroma, superior grain length, and uniform quality.",
     image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80",
@@ -24,6 +25,7 @@ const INORA_PRODUCTS = [
   {
     id: "spices",
     category: "SPICES",
+    stampLabel: "SPICES",
     title: "Pure & Aromatic Spices",
     description: "Authentic, flavorful Indian spices selected for high volatile oil content and strict cleanliness standards.",
     image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80",
@@ -41,6 +43,7 @@ const INORA_PRODUCTS = [
   {
     id: "powders",
     category: "VALUE-ADDED POWDERS",
+    stampLabel: "POWDERS",
     title: "Value-Added Botanical Powders",
     description: "Fine mesh, nutrient-dense agricultural and herbal powders processed in hygienic processing units.",
     image: "assets/images/botanical-powders.jpg",
@@ -58,6 +61,7 @@ const INORA_PRODUCTS = [
   {
     id: "produce",
     category: "FRESH FRUITS & VEGETABLES",
+    stampLabel: "PRODUCE",
     title: "Fresh Agricultural Produce",
     description: "Farm-fresh produce sorted, graded, and packed in temperature-monitored environments for export transit.",
     image: "assets/images/fresh-produce.jpg",
@@ -74,6 +78,7 @@ const INORA_PRODUCTS = [
   {
     id: "peanut",
     category: "PEANUT",
+    stampLabel: "PEANUT",
     title: "Indian Groundnut / Peanut",
     description: "Bold and Java variety peanuts processed for food industry, snacking, and oil extraction.",
     image: "assets/images/peanuts.jpg",
@@ -91,6 +96,7 @@ const INORA_PRODUCTS = [
   {
     id: "dehydrated",
     category: "DEHYDRATED PRODUCTS",
+    stampLabel: "DEHYDRATED",
     title: "Dehydrated Vegetables & Fruits",
     description: "Premium dehydrated flakes, granules, and powders retaining natural aroma and long shelf life.",
     image: "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=800&q=80",
@@ -155,7 +161,7 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
     <div class="product-card" data-tilt data-id="${product.id}">
       <div class="product-image-wrap">
         <img src="${product.image}" alt="${product.title}" loading="lazy">
-        <div class="export-stamp">${product.category}<br>&bull; INDIA &bull;</div>
+        <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
       </div>
       <div class="product-content">
         <span class="product-category-label">${product.category}</span>
@@ -242,7 +248,7 @@ function initProductDetail() {
         <div class="product-detail-gallery">
           <div class="product-detail-img-box">
             <img src="${product.image}" alt="${product.title}">
-            <div class="export-stamp">${product.category}<br>&bull; INDIA &bull;</div>
+            <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
           </div>
           <div class="product-items-box">
             <div class="product-items-box-title"><i class="fas fa-list-check"></i> Export Varieties & Products</div>
@@ -303,7 +309,7 @@ function renderRelatedProducts(containerId, currentId) {
     <div class="product-card">
       <div class="product-image-wrap">
         <img src="${product.image}" alt="${product.title}" loading="lazy">
-        <div class="export-stamp">${product.category}<br>&bull; INDIA &bull;</div>
+        <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
       </div>
       <div class="product-content">
         <span class="product-category-label">${product.category}</span>
