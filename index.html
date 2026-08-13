@@ -64,19 +64,19 @@
   <!-- AMBIENT CURSOR GLOW SPOTLIGHT -->
   <div class="cursor-glow" id="cursor-glow"></div>
 
-  <!-- CINEMATIC BRAND PRELOADER CURTAIN -->
-  <div class="inora-preloader" id="inora-preloader">
-    <div class="preloader-content">
-      <div class="preloader-logo-wrap">
-        <img src="assets/images/logo-web.png" alt="INORA GLOBAL EXIM" class="preloader-logo">
-      </div>
-      <div class="preloader-brand-title">INORA GLOBAL EXIM</div>
-      <div class="preloader-tagline">BEYOND BORDERS, BUILDING TRUST.</div>
-      <div class="preloader-bar-wrap">
-        <div class="preloader-bar" id="preloader-bar"></div>
-      </div>
-      <div class="preloader-counter" id="preloader-counter">0%</div>
+  <!-- GLOBAL TRADE LOGISTICS CARGO PRELOADER -->
+  <div class="preloader-container" id="preloader">
+    <div class="trade-route">
+      <div class="ship-glow"></div>
+      <svg class="cargo-plane" viewBox="0 0 24 24">
+        <path d="M21,16 L21,14 L13,9 L13,3.5 C13,2.67 12.33,2 11.5,2 C10.67,2 10,2.67 10,3.5 L10,9 L2,14 L2,16 L10,13.5 L10,19 L8,20.5 L8,22 L11.5,21 L15,22 L15,20.5 L13,19 L13,13.5 L21,16 Z"/>
+      </svg>
+      <svg class="cargo-ship" viewBox="0 0 24 24">
+        <path d="M2,16 L22,16 L20,20 L4,20 Z M5,11 L9,11 L9,15 L5,15 Z M10,9 L14,9 L14,15 L10,15 Z M15,12 L19,12 L19,15 L15,15 Z"/>
+      </svg>
     </div>
+    <div class="loading-text">INORA GLOBAL EXIM</div>
+    <div class="status-subtext" id="status-text">Securing global freight lines...</div>
   </div>
 
   <!-- STICKY HEADER & NAVIGATION -->
@@ -242,11 +242,18 @@
         </div>
       </div>
 
-      <div class="about-visual-wrap" style="position: relative; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg); border: 1.5px solid var(--navy-border);">
-        <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80" alt="International Air & Sea Cargo Logistics Terminal" style="width: 100%; height: 100%; min-height: 360px; object-fit: cover; display: block;">
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, rgba(6,13,25,0.95) 0%, transparent 100%); padding: 1.5rem; color: var(--white);">
-          <div style="font-weight: 800; color: var(--gold); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-plane"></i> AIR & <i class="fas fa-ship"></i> OCEAN LOGISTICS</div>
-          <div style="font-size: 0.85rem; color: var(--slate-light);">Cargo Aircraft Express Freight & Container Vessel Coordination</div>
+      <div class="about-visual-wrap" style="position: relative; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-lg); border: 1.5px solid var(--navy-border); height: 380px;">
+        <div class="about-slider" id="about-slider">
+          <img src="assets/images/air-cargo.jpg" alt="Air Cargo Aircraft Express Freight" class="about-slide active">
+          <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80" alt="Ocean Container Cargo Vessel Freight" class="about-slide">
+        </div>
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, rgba(6,13,25,0.95) 0%, transparent 100%); padding: 1.5rem; color: var(--white); z-index: 5;">
+          <div style="font-weight: 800; color: var(--gold); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;" id="logistics-slide-title">
+            <i class="fas fa-plane"></i> AIR FREIGHT LOGISTICS
+          </div>
+          <div style="font-size: 0.85rem; color: var(--slate-light);" id="logistics-slide-sub">
+            Cargo Aircraft Express Freight & Rapid Dispatch
+          </div>
         </div>
       </div>
     </div>

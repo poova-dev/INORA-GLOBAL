@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Initialize Ambient Cursor Glow Spotlight
   initCursorSpotlight();
 
+  // 4. Initialize About Air & Ocean Logistics Auto-Slider
+  initAboutLogisticsSlider();
+
   // Check for prefers-reduced-motion
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (prefersReducedMotion) {
@@ -176,40 +179,84 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Preloader Controller
+ * Global Trade Cargo Preloader Controller
  */
 function initPreloaderController() {
-  const preloader = document.getElementById('inora-preloader');
-  const bar = document.getElementById('preloader-bar');
-  const counter = document.getElementById('preloader-counter');
-
+  const preloader = document.getElementById('preloader') || document.getElementById('inora-preloader');
   if (!preloader) return;
 
-  // Check if session flag is set for subpage fast loading
-  if (sessionStorage.getItem('inora_loader_seen') === 'true') {
+  // Run ONLY ONCE on site entrance per browser session
+  if (sessionStorage.getItem('inora_preloader_seen') === 'true') {
+    preloader.classList.add('preloader-hidden');
     preloader.classList.add('loaded');
     return;
   }
+  sessionStorage.setItem('inora_preloader_seen', 'true');
 
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 15) + 10;
-    if (progress >= 100) {
-      progress = 100;
-      clearInterval(interval);
+  const statuses = [
+    "Securing global freight lines...",
+    "Verifying Indian agricultural manifests...",
+    "Optimizing sea & air cargo routes...",
+    "Finalizing export dispatch..."
+  ];
 
-      if (bar) bar.style.width = '100%';
-      if (counter) counter.textContent = '100%';
+  let statusIndex = 0;
+  const statusElement = document.getElementById('status-text');
 
-      setTimeout(() => {
-        preloader.classList.add('loaded');
-        sessionStorage.setItem('inora_loader_seen', 'true');
-      }, 300);
-    } else {
-      if (bar) bar.style.width = progress + '%';
-      if (counter) counter.textContent = progress + '%';
+  if (statusElement) {
+    setInterval(() => {
+      statusIndex = (statusIndex + 1) % statuses.length;
+      statusElement.textContent = statuses[statusIndex];
+    }, 700);
+  }
+
+  const dismissPreloader = () => {
+    preloader.classList.add('preloader-hidden');
+    preloader.classList.add('loaded');
+  };
+
+  window.addEventListener('load', () => {
+    setTimeout(dismissPreloader, 800);
+  });
+
+  // Safety fallback timer
+  setTimeout(dismissPreloader, 2200);
+}
+
+/**
+ * About Section Air & Ocean Freight Logistics Visual Auto-Slider
+ */
+function initAboutLogisticsSlider() {
+  const slider = document.getElementById('about-slider');
+  if (!slider) return;
+
+  const slides = slider.querySelectorAll('.about-slide');
+  const title = document.getElementById('logistics-slide-title');
+  const sub = document.getElementById('logistics-slide-sub');
+  if (slides.length < 2) return;
+
+  let currentIndex = 0;
+  const slideData = [
+    {
+      title: '<i class="fas fa-plane"></i> AIR FREIGHT LOGISTICS',
+      sub: 'Cargo Aircraft Express Freight & Rapid Dispatch'
+    },
+    {
+      title: '<i class="fas fa-ship"></i> OCEAN FREIGHT LOGISTICS',
+      sub: 'Full Container Load (FCL) Vessel Cargo Coordination'
     }
-  }, 50);
+  ];
+
+  setInterval(() => {
+    slides[currentIndex].classList.remove('active');
+    currentIndex = (currentIndex + 1) % slides.length;
+    slides[currentIndex].classList.add('active');
+
+    if (title && sub && slideData[currentIndex]) {
+      title.innerHTML = slideData[currentIndex].title;
+      sub.textContent = slideData[currentIndex].sub;
+    }
+  }, 3500);
 }
 
 /**
