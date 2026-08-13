@@ -1,4 +1,4 @@
-# INORA GLOBAL EXIM — Premium Static B2B Export Website
+# INORA GLOBAL EXIM — Premium Static B2B Export Website.    
 
 Official web platform for **INORA GLOBAL EXIM**, an India-based Merchant Exporter and Global Sourcing Partner.
 
