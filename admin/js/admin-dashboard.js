@@ -489,6 +489,12 @@ let adminProductsList = [];
 
 // Initialize Products Firestore Listener
 function initProductsAdmin() {
+  // Pre-populate adminProductsList immediately from INORA_PRODUCTS
+  if (typeof INORA_PRODUCTS !== 'undefined' && INORA_PRODUCTS.length > 0) {
+    adminProductsList = INORA_PRODUCTS.map(p => ({ docId: p.id, ...p }));
+    renderProductsAdminTable();
+  }
+
   if (typeof firebase !== 'undefined' && firebase.firestore && db) {
     db.collection('products').onSnapshot(async (snapshot) => {
       if (snapshot.empty) {
@@ -506,7 +512,8 @@ function initProductsAdmin() {
         renderProductsAdminTable();
       }
     }, (err) => {
-      console.error("Error loading products:", err);
+      console.warn("Firestore products listener warning:", err);
+      renderProductsAdminTable();
     });
   }
 }
