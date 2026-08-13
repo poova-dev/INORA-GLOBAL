@@ -43,7 +43,7 @@ const INORA_PRODUCTS = [
     category: "VALUE-ADDED POWDERS",
     title: "Value-Added Botanical Powders",
     description: "Fine mesh, nutrient-dense agricultural and herbal powders processed in hygienic processing units.",
-    image: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
+    image: "assets/images/botanical-powders.jpg",
     items: ["Moringa Powder", "Curry Leaf Powder", "Garlic Powder", "Coriander Powder", "Turmeric Powder", "Red Chilli Powder", "Garam Masala"],
     specs: {
       origin: "India",
@@ -60,7 +60,7 @@ const INORA_PRODUCTS = [
     category: "FRESH FRUITS & VEGETABLES",
     title: "Fresh Agricultural Produce",
     description: "Farm-fresh produce sorted, graded, and packed in temperature-monitored environments for export transit.",
-    image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80",
+    image: "assets/images/fresh-produce.jpg",
     items: ["Lemon", "Drumstick", "Ginger", "Green Chili", "Curry Leaves", "Coriander Leaves"],
     specs: {
       origin: "India",
