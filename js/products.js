@@ -115,11 +115,12 @@ function renderProductGrid(containerId) {
     <div class="product-card" data-tilt data-id="${product.id}">
       <div class="product-image-wrap">
         <img src="${product.image}" alt="${product.title}" loading="lazy">
-        <span class="product-category-tag">${product.category}</span>
+        <div class="export-stamp">${product.category}<br>&bull; INDIA &bull;</div>
       </div>
       <div class="product-content">
+        <span class="product-category-label">${product.category}</span>
         <h3 class="product-title">${product.title}</h3>
-        <p style="font-size: 0.88rem; color: var(--slate-muted); margin-bottom: 1rem;">${product.description}</p>
+        <p style="font-size: 0.88rem; color: var(--slate-muted); margin-bottom: 1rem; line-height: 1.55;">${product.description}</p>
         <div class="product-items-list">
           ${product.items.map(item => `<span class="product-item-chip">${item}</span>`).join('')}
         </div>

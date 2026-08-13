@@ -9,7 +9,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/base.css">
@@ -79,8 +79,72 @@
     <i class="fab fa-whatsapp"></i>
   </a>
 
-  <footer class="site-footer">
+    <footer class="site-footer">
     <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-wrapper" style="margin-bottom: 1rem;">
+            <div class="logo-icon">IG</div>
+            <div class="logo-text">
+              <span class="logo-brand">INORA GLOBAL EXIM</span>
+              <span class="logo-tagline">BEYOND BORDERS, BUILDING TRUST.</span>
+            </div>
+          </div>
+          <p class="footer-brand-desc">
+            Indian Merchant Exporter &amp; Global Sourcing Partner connecting international buyers with premium agricultural, food, and value-added goods.
+          </p>
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem; font-size: 1.2rem;">
+            <a href="#" style="color: var(--gold);" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="#" style="color: var(--gold);" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" style="color: var(--gold);" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="https://wa.me/917200819993" style="color: var(--gold);" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Quick Links</h4>
+          <div class="footer-links">
+            <a href="index.html" class="footer-link">Home</a>
+            <a href="about.html" class="footer-link">About Us</a>
+            <a href="products.html" class="footer-link">Products Catalogue</a>
+            <a href="sourcing.html" class="footer-link">Global Sourcing</a>
+            <a href="export-process.html" class="footer-link">Export Process</a>
+            <a href="quality.html" class="footer-link">Quality Standards</a>
+            <a href="markets.html" class="footer-link">Target Markets</a>
+            <a href="quote.html" class="footer-link">Request A Quote</a>
+            <a href="contact.html" class="footer-link">Contact Us</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Export Products</h4>
+          <div class="footer-links">
+            <a href="products.html" class="footer-link">Indian Rice (Ponni / Basmati)</a>
+            <a href="products.html" class="footer-link">Spices (Pepper, Turmeric, Cumin)</a>
+            <a href="products.html" class="footer-link">Value-Added Powders (Moringa)</a>
+            <a href="products.html" class="footer-link">Fresh Produce (Lemon, Drumstick)</a>
+            <a href="products.html" class="footer-link">Groundnut / Peanuts</a>
+            <a href="products.html" class="footer-link">Dehydrated Onion &amp; Garlic</a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Contact Office</h4>
+          <p style="font-size: 0.88rem; margin-bottom: 0.8rem; line-height: 1.6;">
+            <strong>INORA GLOBAL EXIM</strong><br>
+            60 A Karunigar Street (Palla Street),<br>
+            Thiruninravur, Thiruvallur &ndash; 602024,<br>
+            Tamil Nadu, India.
+          </p>
+          <p style="font-size: 0.88rem; margin-bottom: 0.5rem;">
+            <i class="fas fa-phone text-gold"></i> +91 72008 19993
+          </p>
+          <p style="font-size: 0.88rem;">
+            <i class="fas fa-envelope text-gold"></i> exports@inoraglobal.com
+          </p>
+        </div>
+      </div>
+
       <div class="footer-bottom">
         <div>&copy; 2026 INORA GLOBAL EXIM. All Rights Reserved.</div>
         <div>Indian Merchant Exporter &bull; Global Sourcing Partner</div>
@@ -110,11 +174,11 @@
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; background: var(--white); border-radius: 16px; padding: 3rem; border: 1px solid var(--grey-border); box-shadow: var(--shadow-md);">
             <div>
-              <div style="border-radius: 12px; overflow: hidden; height: 380px; margin-bottom: 1.5rem; background: var(--navy-dark);">
+              <div style="border-radius: 12px; overflow: hidden; height: 380px; margin-bottom: 1.5rem; background: var(--navy-darker);">
                 <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
               </div>
-              <div style="background: var(--navy-dark); color: var(--white); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--navy-border);">
-                <h4 style="color: var(--gold-primary); margin-bottom: 0.5rem; font-size: 1rem;">Export Varieties & Items</h4>
+              <div style="background: var(--navy-darker); color: var(--white); padding: 1.5rem; border-radius: 10px; border: 1px solid var(--navy-border);">
+                <h4 style="color: var(--gold); margin-bottom: 0.5rem; font-size: 1rem;">Export Varieties & Items</h4>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                   ${product.items.map(item => `<span style="background: rgba(255,255,255,0.1); color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600;">${item}</span>`).join('')}
                 </div>
@@ -123,10 +187,10 @@
 
             <div>
               <span class="section-tag">${product.category}</span>
-              <h1 style="font-size: 2.3rem; font-weight: 900; color: var(--navy-dark); margin-bottom: 1rem;">${product.title}</h1>
+              <h1 style="font-size: 2.3rem; font-weight: 900; color: var(--navy-darker); margin-bottom: 1rem;">${product.title}</h1>
               <p style="color: var(--slate-muted); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem;">${product.description}</p>
 
-              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--navy-dark); margin-bottom: 1rem; border-bottom: 2px solid var(--gold-primary); padding-bottom: 0.4rem; display: inline-block;">
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--navy-darker); margin-bottom: 1rem; border-bottom: 2px solid var(--gold); padding-bottom: 0.4rem; display: inline-block;">
                 TECHNICAL SPECIFICATIONS
               </h3>
 
@@ -134,7 +198,7 @@
                 ${Object.entries(product.specs).map(([key, value]) => `
                   <div style="background: var(--grey-bg); padding: 0.9rem 1.2rem; border-radius: 8px; border: 1px solid #E2E8F0;">
                     <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--slate-muted); font-weight: 700;">${key.replace(/([A-Z])/g, ' $1')}</div>
-                    <div style="font-weight: 700; color: var(--navy-dark); margin-top: 0.2rem;">${value}</div>
+                    <div style="font-weight: 700; color: var(--navy-darker); margin-top: 0.2rem;">${value}</div>
                   </div>
                 `).join('')}
               </div>

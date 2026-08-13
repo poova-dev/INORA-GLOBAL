@@ -82,7 +82,7 @@ function showSuccessModal(buyerName) {
         <div class="modal-icon"><i class="fas fa-check"></i></div>
         <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--white); margin-bottom: 0.5rem;">Enquiry Received!</h3>
         <p style="color: var(--slate-light); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;">
-          Thank you, <strong style="color: var(--gold-primary);">${buyerName}</strong>. Our export trade specialists at INORA GLOBAL EXIM will review your requirements and respond within 24 business hours with specifications and pricing.
+          Thank you, <strong style="color: var(--gold);">${buyerName}</strong>. Our export trade specialists at INORA GLOBAL EXIM will review your requirements and respond within 24 business hours with specifications and pricing.
         </p>
         <button onclick="closeSuccessModal()" class="btn btn-gold" style="width: 100%;">
           ACKNOWLEDGE & CLOSE

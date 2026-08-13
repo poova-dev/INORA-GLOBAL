@@ -15,13 +15,30 @@
   --gold-light: #FEF3C7;
   --white: #FFFFFF;
   --light-grey: #F5F6FA;
+  --grey-bg: #F8FAFC;
   --grey-border: #E2E8F0;
+  --slate-dark: #1E293B;
   --slate-muted: #64748B;
   --slate-light: #94A3B8;
+
+  /* Signature Accent & Packaging Tint */
+  --stamp-red: #8B3A2F;
+  --stamp-red-light: rgba(139, 58, 47, 0.12);
+  --parchment: #F3EDE1;
+
+  /* Spacing Scale */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 3rem;
+  --space-6: 4.5rem;
+  --space-7: 6rem;
 
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 
   /* Shadows & Layout */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);

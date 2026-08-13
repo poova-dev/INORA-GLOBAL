@@ -54,7 +54,8 @@
   }
 
   .hero-title {
-    font-size: 2.3rem;
+    font-size: 2.1rem;
+    line-height: 1.1;
   }
 
   .hero-subheadline {
