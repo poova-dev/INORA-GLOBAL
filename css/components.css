@@ -181,38 +181,48 @@
   display: block;
 }
 
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+
 .logo-brand {
   font-family: var(--font-heading);
   font-weight: 900;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   letter-spacing: 0.5px;
   color: var(--white);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .logo-tagline {
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: var(--gold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 600;
   display: block;
+  white-space: nowrap;
 }
 
 .desktop-nav {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 1.1rem;
 }
 
 .nav-link {
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   padding: 0.4rem 0;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-link:hover, .nav-link.active {

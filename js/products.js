@@ -76,7 +76,7 @@ const INORA_PRODUCTS = [
     category: "PEANUT",
     title: "Indian Groundnut / Peanut",
     description: "Bold and Java variety peanuts processed for food industry, snacking, and oil extraction.",
-    image: "https://images.unsplash.com/photo-1567892336302-23c0eb4c2f42?auto=format&fit=crop&w=800&q=80",
+    image: "assets/images/peanuts.jpg",
     items: ["Bold Peanut", "Java Peanut", "Blanched Peanuts", "Peanut Kernels"],
     specs: {
       origin: "India (Gujarat, Andhra Pradesh, Tamil Nadu)",
