@@ -109,7 +109,20 @@ let INORA_PRODUCTS = [
 ];
 
 /**
- * Initialize Firestore Dynamic Products Listener
+ * Safely parse items array or comma-separated string into clean trimmed string array
+ */
+function parseProductItems(items) {
+  if (Array.isArray(items)) {
+    return items.map(i => typeof i === 'string' ? i.trim() : String(i)).filter(Boolean);
+  }
+  if (typeof items === 'string') {
+    return items.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * Initialize Firestore Dynamic Products Listener across Website
  */
 function initFirestoreProducts() {
   if (typeof firebase !== 'undefined' && firebase.firestore && db) {
@@ -125,14 +138,14 @@ function initFirestoreProducts() {
             stampLabel: data.stampLabel || data.category || '',
             description: data.description || '',
             image: data.image || '',
-            items: Array.isArray(data.items) ? data.items : [],
+            items: parseProductItems(data.items),
             origin: data.origin || (data.specs && data.specs.origin) || 'India',
             specs: data.specs || {
-              origin: data.origin || 'India',
-              forms: data.forms || 'Based on buyer requirement',
-              packaging: data.packaging || 'Based on buyer requirement',
-              moq: data.moq || 'Based on buyer requirement',
-              capacity: data.capacity || 'Based on buyer requirement'
+              origin: data.origin || (data.specs && data.specs.origin) || 'India',
+              forms: data.forms || (data.specs && (data.specs.forms || data.specs.type)) || 'Based on buyer requirement',
+              packaging: data.packaging || (data.specs && data.specs.packaging) || 'Based on buyer requirement',
+              moq: data.moq || (data.specs && data.specs.moq) || 'Based on buyer requirement',
+              capacity: data.capacity || (data.specs && data.specs.capacity) || 'Based on buyer requirement'
             }
           });
         });
@@ -149,9 +162,11 @@ function initFirestoreProducts() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initFirestoreProducts();
+  initProductCatalog();
+  initProductDetail();
 });
 
-// Helper to render product grid dynamically on catalog page with category and search filter support
+// Helper to render product grid dynamically on home & catalog page
 function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = '') {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -159,17 +174,18 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
   const filteredProducts = INORA_PRODUCTS.filter(product => {
+    const items = parseProductItems(product.items);
     // Category Filter
     const matchesCategory = (categoryFilter === 'all') || 
       (product.id === categoryFilter) || 
-      (product.category.toLowerCase() === categoryFilter.toLowerCase());
+      (product.category && product.category.toLowerCase() === categoryFilter.toLowerCase());
 
     // Search Query Filter
     const matchesSearch = !normalizedSearch || 
-      product.title.toLowerCase().includes(normalizedSearch) ||
-      product.category.toLowerCase().includes(normalizedSearch) ||
-      product.description.toLowerCase().includes(normalizedSearch) ||
-      product.items.some(item => item.toLowerCase().includes(normalizedSearch));
+      (product.title && product.title.toLowerCase().includes(normalizedSearch)) ||
+      (product.category && product.category.toLowerCase().includes(normalizedSearch)) ||
+      (product.description && product.description.toLowerCase().includes(normalizedSearch)) ||
+      items.some(item => item.toLowerCase().includes(normalizedSearch));
 
     return matchesCategory && matchesSearch;
   });
@@ -196,10 +212,12 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
     return;
   }
 
-  container.innerHTML = filteredProducts.map(product => `
+  container.innerHTML = filteredProducts.map(product => {
+    const items = parseProductItems(product.items);
+    return `
     <div class="product-card" data-id="${product.id}">
       <div class="product-image-wrap">
-        <img src="${product.image}" alt="${product.title}" loading="lazy">
+        <img src="${product.image || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80'}" alt="${product.title}" loading="lazy">
         <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
       </div>
       <div class="product-content">
@@ -207,7 +225,7 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
         <h3 class="product-title">${product.title}</h3>
         <p style="font-size: 0.88rem; color: var(--slate-muted); margin-bottom: 1rem; line-height: 1.55;">${product.description}</p>
         <div class="product-items-list">
-          ${product.items.map(item => `<span class="product-item-chip">${item}</span>`).join('')}
+          ${items.map(item => `<span class="product-item-chip">${item}</span>`).join('')}
         </div>
         <div class="product-card-footer">
           <a href="product-detail.html?cat=${product.id}" class="product-link">
@@ -219,7 +237,8 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 
   if (typeof window.initProductCardsAnimation === 'function') {
     window.initProductCardsAnimation();
@@ -264,11 +283,14 @@ function initProductDetail() {
   if (!container) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const catId = urlParams.get('cat') || 'spices';
+  const catId = urlParams.get('cat') || 'rice';
   
-  const product = INORA_PRODUCTS.find(p => p.id === catId) || INORA_PRODUCTS[0];
+  const product = INORA_PRODUCTS.find(p => 
+    p.id === catId || 
+    (p.id && p.id.toLowerCase() === catId.toLowerCase()) || 
+    (p.category && p.category.toLowerCase() === catId.toLowerCase())
+  ) || INORA_PRODUCTS[0];
 
-  // Update dynamic hero header elements if present
   const heroTitle = document.getElementById('detail-hero-title');
   const heroBadge = document.getElementById('detail-hero-badge-text');
   const breadcrumbCurrent = document.getElementById('detail-breadcrumb-current');
@@ -280,6 +302,8 @@ function initProductDetail() {
     if (heroBadge) heroBadge.textContent = product.category;
     if (breadcrumbCurrent) breadcrumbCurrent.textContent = product.title;
 
+    const items = parseProductItems(product.items);
+
     container.innerHTML = `
       <div style="margin-bottom: 2rem;">
         <a href="products.html" style="color: var(--royal-blue); font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem;">
@@ -290,13 +314,13 @@ function initProductDetail() {
       <div class="product-detail-layout">
         <div class="product-detail-gallery">
           <div class="product-detail-img-box">
-            <img src="${product.image}" alt="${product.title}">
+            <img src="${product.image || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80'}" alt="${product.title}">
             <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
           </div>
           <div class="product-items-box">
             <div class="product-items-box-title"><i class="fas fa-list-check"></i> Export Varieties & Products</div>
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-              ${product.items.map(item => `<span style="background: rgba(255,255,255,0.12); color: white; padding: 0.35rem 0.85rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600;">${item}</span>`).join('')}
+              ${items.map(item => `<span class="product-item-chip" style="background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.2);">${item}</span>`).join('')}
             </div>
           </div>
         </div>
@@ -313,7 +337,7 @@ function initProductDetail() {
           </div>
 
           <div class="product-specs-grid">
-            ${Object.entries(product.specs).map(([key, value]) => `
+            ${Object.entries(product.specs || {}).map(([key, value]) => `
               <div class="spec-box">
                 <div class="spec-label">${key.replace(/([A-Z])/g, ' $1')}</div>
                 <div class="spec-value">${value}</div>
@@ -336,7 +360,6 @@ function initProductDetail() {
       </div>
     `;
 
-    // Render Related Products
     renderRelatedProducts('related-products-grid', product.id);
   }
 }
@@ -348,16 +371,21 @@ function renderRelatedProducts(containerId, currentId) {
 
   const related = INORA_PRODUCTS.filter(p => p.id !== currentId).slice(0, 3);
 
-  container.innerHTML = related.map(product => `
+  container.innerHTML = related.map(product => {
+    const items = parseProductItems(product.items);
+    return `
     <div class="product-card">
       <div class="product-image-wrap">
-        <img src="${product.image}" alt="${product.title}" loading="lazy">
+        <img src="${product.image || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80'}" alt="${product.title}" loading="lazy">
         <div class="export-stamp">${product.stampLabel || product.category}<br>&bull; INDIA &bull;</div>
       </div>
       <div class="product-content">
         <span class="product-category-label">${product.category}</span>
         <h3 class="product-title">${product.title}</h3>
         <p style="font-size: 0.88rem; color: var(--slate-muted); margin-bottom: 1rem; line-height: 1.55;">${product.description}</p>
+        <div class="product-items-list">
+          ${items.map(item => `<span class="product-item-chip">${item}</span>`).join('')}
+        </div>
         <div class="product-card-footer">
           <a href="product-detail.html?cat=${product.id}" class="product-link">
             View Details <i class="fas fa-arrow-right"></i>
@@ -368,11 +396,6 @@ function renderRelatedProducts(containerId, currentId) {
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
-
-// Document Ready Initialization
-document.addEventListener('DOMContentLoaded', () => {
-  initProductCatalog();
-  initProductDetail();
-});
