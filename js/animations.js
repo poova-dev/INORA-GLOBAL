@@ -67,86 +67,96 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Hero Section Actions & Description Reveal
-    gsap.from('.hero-badge, .hero-description, .hero-actions', {
-      opacity: 0,
-      y: 20,
-      duration: 0.7,
-      stagger: 0.1,
-      ease: 'power2.out',
-      delay: 0.7
-    });
+    const heroElements = document.querySelectorAll('.hero-badge, .hero-description, .hero-actions');
+    if (heroElements.length > 0) {
+      gsap.from(heroElements, {
+        opacity: 0,
+        y: 20,
+        duration: 0.7,
+        stagger: 0.1,
+        ease: 'power2.out',
+        delay: 0.7
+      });
+    }
 
     // Trust Bar Items Stagger Reveal
-    gsap.from('.trust-item', {
-      scrollTrigger: {
-        trigger: '.trust-bar',
-        start: 'top 90%',
-        once: true
-      },
-      opacity: 0,
-      y: 15,
-      stagger: 0.08,
-      duration: 0.6,
-      ease: 'power2.out'
-    });
-
-    // Section Titles Fade Up
-    gsap.utils.toArray('.section-tag, .section-title, .section-desc').forEach(element => {
-      gsap.from(element, {
+    const trustBar = document.querySelector('.trust-bar');
+    const trustItems = document.querySelectorAll('.trust-item');
+    if (trustBar && trustItems.length > 0) {
+      gsap.from(trustItems, {
         scrollTrigger: {
-          trigger: element,
+          trigger: trustBar,
           start: 'top 90%',
           once: true
         },
         opacity: 0,
-        y: 20,
+        y: 15,
+        stagger: 0.08,
         duration: 0.6,
         ease: 'power2.out'
       });
-    });
+    }
+
+    // Section Titles Fade Up
+    const sectionElements = gsap.utils.toArray('.section-tag, .section-title, .section-desc');
+    if (sectionElements.length > 0) {
+      sectionElements.forEach(element => {
+        if (element) {
+          gsap.from(element, {
+            scrollTrigger: {
+              trigger: element,
+              start: 'top 90%',
+              once: true
+            },
+            opacity: 0,
+            y: 20,
+            duration: 0.6,
+            ease: 'power2.out'
+          });
+        }
+      });
+    }
 
     // Product Cards Stagger Reveal
-    gsap.from('.product-card', {
-      scrollTrigger: {
-        trigger: '.products-grid',
-        start: 'top 85%',
-        once: true
-      },
-      opacity: 0,
-      y: 30,
-      stagger: 0.1,
-      duration: 0.7,
-      ease: 'power2.out'
-    });
+    initProductCardsAnimation();
 
     // Export Process Timeline Steps Sequential Reveal
-    gsap.utils.toArray('.timeline-item').forEach((item, index) => {
-      gsap.from(item, {
+    const timelineItems = gsap.utils.toArray('.timeline-item');
+    if (timelineItems.length > 0) {
+      timelineItems.forEach((item, index) => {
+        if (item) {
+          gsap.from(item, {
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%',
+              once: true
+            },
+            opacity: 0,
+            x: index % 2 === 0 ? -30 : 30,
+            duration: 0.7,
+            ease: 'power2.out'
+          });
+        }
+      });
+    }
+
+    // Global Markets Chips Reveal
+    const marketsGrid = document.querySelector('.markets-grid');
+    const marketChips = document.querySelectorAll('.market-chip');
+    if (marketsGrid && marketChips.length > 0) {
+      gsap.from(marketChips, {
         scrollTrigger: {
-          trigger: item,
+          trigger: marketsGrid,
           start: 'top 85%',
           once: true
         },
         opacity: 0,
-        x: index % 2 === 0 ? -30 : 30,
-        duration: 0.7,
+        scale: 0.95,
+        stagger: 0.08,
+        duration: 0.5,
         ease: 'power2.out'
       });
-    });
-
-    // Global Markets Chips Reveal
-    gsap.from('.market-chip', {
-      scrollTrigger: {
-        trigger: '.markets-grid',
-        start: 'top 85%',
-        once: true
-      },
-      opacity: 0,
-      scale: 0.95,
-      stagger: 0.08,
-      duration: 0.5,
-      ease: 'power2.out'
-    });
+    }
   }
 
   // Lightweight Card Hover Effect
@@ -177,6 +187,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+/**
+ * Re-triggerable GSAP reveal for Product Cards
+ */
+function initProductCardsAnimation() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+  const productsGrid = document.querySelector('.products-grid');
+  const productCards = document.querySelectorAll('.product-card');
+  if (productsGrid && productCards.length > 0) {
+    gsap.from(productCards, {
+      scrollTrigger: {
+        trigger: productsGrid,
+        start: 'top 85%',
+        once: true
+      },
+      opacity: 0,
+      y: 30,
+      stagger: 0.1,
+      duration: 0.7,
+      ease: 'power2.out'
+    });
+  }
+}
+window.initProductCardsAnimation = initProductCardsAnimation;
 
 /**
  * Global Trade Cargo Preloader Controller

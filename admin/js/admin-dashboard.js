@@ -1,21 +1,28 @@
 /* ==========================================================================
-   INORA GLOBAL EXIM - Admin Dashboard Controller
+   INORA GLOBAL EXIM — Admin Dashboard Controller
+   Firestore-First Architecture (No LocalStorage Fallbacks)
+   Includes: Overview Metrics, Enquiries Manager, Product CRUD & Cloudinary Uploads
    ========================================================================== */
 
-let allEnquiries = [];
+// Session In-Memory Caches (Pure render speed optimization, non-authoritative)
+let enquiriesCache = [];
+let productsCache = [];
+
 let currentFilterFormType = 'all';
 let currentFilterStatus = 'all';
 let currentSearchQuery = '';
+let currentProductSearchQuery = '';
+let currentProductCategoryFilter = 'all';
 
 document.addEventListener('DOMContentLoaded', () => {
-  initDashboard();
+  initAdminDashboard();
 
-  // Bind filter dropdowns
+  // Bind Enquiries Filters
   const formTypeSelect = document.getElementById('filter-form-type');
   if (formTypeSelect) {
     formTypeSelect.addEventListener('change', (e) => {
       currentFilterFormType = e.target.value;
-      renderDashboardTable();
+      renderEnquiriesTable();
     });
   }
 
@@ -23,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (statusSelect) {
     statusSelect.addEventListener('change', (e) => {
       currentFilterStatus = e.target.value;
-      renderDashboardTable();
+      renderEnquiriesTable();
     });
   }
 
@@ -31,193 +38,271 @@ document.addEventListener('DOMContentLoaded', () => {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       currentSearchQuery = e.target.value;
-      renderDashboardTable();
+      renderEnquiriesTable();
     });
-  }
-
-  const exportBtn = document.getElementById('export-csv-btn');
-  if (exportBtn) {
-    exportBtn.addEventListener('click', exportEnquiriesCSV);
   }
 });
 
 /**
- * Initialize Dashboard Data Fetching
+ * Initialize Dashboard Snapshot Listeners for Enquiries & Products
  */
-function initDashboard() {
+function initAdminDashboard() {
   if (typeof firebase !== 'undefined' && firebase.firestore && db && firebase.apps.length) {
-    // Real-time Firestore snapshot listener
+    // 1. Real-time Enquiries Listener
     db.collection('enquiries').onSnapshot((snapshot) => {
-      let firestoreItems = [];
+      let items = [];
       snapshot.forEach((doc) => {
-        firestoreItems.push({
+        items.push({
           id: doc.id,
           ...doc.data()
         });
       });
 
-      const localItems = JSON.parse(localStorage.getItem('inora_enquiries') || '[]');
-
-      // Combine Firestore and LocalStorage items, removing duplicates by id or timestamp
-      const combined = [...firestoreItems];
-      localItems.forEach(loc => {
-        if (!combined.some(c => c.id === loc.id || (c.email === loc.email && c.message === loc.message && c.message))) {
-          combined.push(loc);
-        }
-      });
-
-      // Sort by date descending
-      combined.sort((a, b) => {
+      // Sort descending by timestamp
+      items.sort((a, b) => {
         const timeA = a.timestamp ? (a.timestamp.seconds ? a.timestamp.seconds * 1000 : new Date(a.timestamp).getTime()) : 0;
         const timeB = b.timestamp ? (b.timestamp.seconds ? b.timestamp.seconds * 1000 : new Date(b.timestamp).getTime()) : 0;
         return timeB - timeA;
       });
 
-      if (combined.length === 0) {
-        loadLocalFallbackData();
-      } else {
-        allEnquiries = combined;
-        updateMetrics();
-        renderDashboardTable();
+      enquiriesCache = items;
+      renderEnquiriesTable();
+      updateOverviewMetrics();
+    }, (err) => {
+      console.error("Firestore enquiries fetch error:", err);
+      const tbody = document.getElementById('enquiries-table-body');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem; color: #EF4444;">
+              <i class="fas fa-exclamation-circle" style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+              Failed to load enquiries from Firestore: ${err.message}
+            </td>
+          </tr>
+        `;
       }
-    }, (error) => {
-      console.warn("Firestore snapshot warning, loading local fallback data:", error);
-      loadLocalFallbackData();
     });
-  } else {
-    loadLocalFallbackData();
-  }
-}
 
-/**
- * LocalStorage & Sample Data Fallback
- */
-function loadLocalFallbackData() {
-  const stored = JSON.parse(localStorage.getItem('inora_enquiries') || '[]');
-  if (stored.length > 0) {
-    allEnquiries = stored.map((item, idx) => ({
-      id: item.id || `local_${idx}`,
-      ...item
-    }));
-  } else {
-    // Demo / Sample B2B leads when initial setup is opened
-    allEnquiries = [
-      {
-        id: "demo_1",
-        formType: "quote",
-        fullName: "Marcus Vance",
-        companyName: "Vance Foods Global LLC",
-        country: "United States",
-        email: "m.vance@vancefoods.com",
-        phone: "+1 (555) 234-8900",
-        businessType: "Importer / Wholesaler",
-        productTitle: "Premium Indian Rice (Ponni & Basmati)",
-        quantityNeeded: "2 x 20ft FCL (50 MT)",
-        packagingSpec: "25kg PP / Jute Bags",
-        destinationPort: "Port of Houston, USA",
-        message: "We require immediate quotation for 50 MT Ponni Parboiled Rice with custom branding bags.",
-        status: "NEW_ENQUIRY",
-        timestamp: new Date().toISOString()
-      },
-      {
-        id: "demo_2",
-        formType: "sourcing",
-        fullName: "Elena Rostova",
-        companyName: "EuroSpices GmbH",
-        country: "Germany",
-        email: "e.rostova@eurospices.de",
-        phone: "+49 30 1234567",
-        businessType: "Food Manufacturer",
-        productTitle: "Pure Indian Spices (Whole Black Pepper 550g/l)",
-        quantityNeeded: "1 x 20ft FCL (18 MT)",
-        packagingSpec: "50kg Vacuum Sealed Gunny Bags",
-        destinationPort: "Hamburg Port, Germany",
-        message: "Looking for ASTA quality Whole Black Pepper with clean laboratory analysis certificate.",
-        status: "CONTACTED",
-        timestamp: new Date(Date.now() - 86400000).toISOString()
-      },
-      {
-        id: "demo_3",
-        formType: "product_enquiry",
-        fullName: "Shariff Al-Mansoor",
-        companyName: "Al-Mansoor Trading Est.",
-        country: "UAE",
-        email: "info@almansoor-trading.ae",
-        phone: "+971 4 987 6543",
-        businessType: "Distributor",
-        productTitle: "Value-Added Moringa & Botanical Powders",
-        quantityNeeded: "5 MT",
-        packagingSpec: "25kg HDPE Drums",
-        destinationPort: "Jebel Ali Port, Dubai",
-        message: "Kindly share product specs sheet and best FOB / CIF Jebel Ali pricing.",
-        status: "NEW_ENQUIRY",
-        timestamp: new Date(Date.now() - 172800000).toISOString()
+    // 2. Real-time Products Listener
+    db.collection('products').onSnapshot((snapshot) => {
+      let prods = [];
+      snapshot.forEach((doc) => {
+        prods.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      productsCache = prods;
+      renderAdminProductsGrid();
+      updateOverviewMetrics();
+
+      // Show seed migration banner if products collection is completely empty
+      const banner = document.getElementById('seed-migration-banner');
+      const seedBtn = document.getElementById('migrate-seed-btn');
+      if (prods.length === 0) {
+        if (banner) banner.style.display = 'block';
+        if (seedBtn) seedBtn.style.display = 'inline-flex';
+      } else {
+        if (banner) banner.style.display = 'none';
+        if (seedBtn) seedBtn.style.display = 'none';
       }
-    ];
-    localStorage.setItem('inora_enquiries', JSON.stringify(allEnquiries));
+    }, (err) => {
+      console.error("Firestore products fetch error:", err);
+      const grid = document.getElementById('admin-products-grid');
+      if (grid) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: #EF4444;">
+            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            Failed to load products from Firestore: ${err.message}
+          </div>
+        `;
+      }
+    });
+
+  } else {
+    console.error("Firebase not initialized in initAdminDashboard.");
   }
-  updateMetrics();
-  renderDashboardTable();
 }
 
-/**
- * Calculate & Update Metric Counters
- */
-function updateMetrics() {
-  const total = allEnquiries.length;
-  const newCount = allEnquiries.filter(e => (e.status || 'NEW_ENQUIRY') === 'NEW_ENQUIRY').length;
-  const quoteCount = allEnquiries.filter(e => e.formType === 'quote').length;
-  const sourcingCount = allEnquiries.filter(e => e.formType === 'sourcing').length;
-  const contactCount = allEnquiries.filter(e => e.formType === 'contact' || e.formType === 'product_enquiry').length;
+/* ==========================================================================
+   TAB SWITCHING NAVIGATION
+   ========================================================================== */
 
-  const totalEl = document.getElementById('stat-total-submissions');
-  const newEl = document.getElementById('stat-new-enquiries');
-  const quoteEl = document.getElementById('stat-quote-count');
-  const sourcingEl = document.getElementById('stat-sourcing-count');
-  const contactEl = document.getElementById('stat-contact-count');
+function switchMainTab(tabId) {
+  const tabs = ['overview', 'enquiries', 'products'];
+  tabs.forEach(t => {
+    const pane = document.getElementById(`tab-${t}`);
+    const navBtn = document.getElementById(`tab-nav-${t}`);
+    if (pane) pane.classList.remove('active');
+    if (navBtn) navBtn.classList.remove('active');
+  });
 
-  if (totalEl) totalEl.textContent = total;
-  if (newEl) newEl.textContent = newCount;
-  if (quoteEl) quoteEl.textContent = quoteCount;
-  if (sourcingEl) sourcingEl.textContent = sourcingCount;
-  if (contactEl) contactEl.textContent = contactCount;
+  const activePane = document.getElementById(`tab-${tabId}`);
+  const activeNav = document.getElementById(`tab-nav-${tabId}`);
+  if (activePane) activePane.classList.add('active');
+  if (activeNav) activeNav.classList.add('active');
+
+  const titleEl = document.getElementById('admin-header-title');
+  if (titleEl) {
+    if (tabId === 'overview') titleEl.textContent = 'Executive Dashboard Overview';
+    else if (tabId === 'enquiries') titleEl.textContent = 'B2B Lead Enquiries & Quote Requests';
+    else if (tabId === 'products') titleEl.textContent = 'Live Export Product Catalogue (CRUD)';
+  }
 }
 
-/**
- * Filter & Render Enquiries Table
- */
-function renderDashboardTable() {
-  const tbody = document.getElementById('enquiries-table-body') || document.getElementById('admin-table-body');
+/* ==========================================================================
+   OVERVIEW TAB METRICS & ACTIVITY FEED
+   ========================================================================== */
+
+function updateOverviewMetrics() {
+  // Unread enquiries
+  const unreadCount = enquiriesCache.filter(e => e.status === 'NEW_ENQUIRY' || !e.status).length;
+  const closedCount = enquiriesCache.filter(e => e.status === 'CLOSED').length;
+
+  // Header badges
+  const unreadBadge = document.getElementById('sidebar-unread-count');
+  const prodBadge = document.getElementById('sidebar-product-count');
+  if (unreadBadge) unreadBadge.textContent = unreadCount;
+  if (prodBadge) prodBadge.textContent = productsCache.length;
+
+  // Overview stats
+  const statProd = document.getElementById('overview-stat-products');
+  const statEnq = document.getElementById('overview-stat-enquiries');
+  const statNew = document.getElementById('overview-stat-new');
+  const statClosed = document.getElementById('overview-stat-closed');
+
+  if (statProd) statProd.textContent = productsCache.length;
+  if (statEnq) statEnq.textContent = enquiriesCache.length;
+  if (statNew) statNew.textContent = unreadCount;
+  if (statClosed) statClosed.textContent = closedCount;
+
+  // Render Category Progress Bars
+  renderOverviewCategoryProgress();
+
+  // Render Activity Feed
+  renderOverviewActivityFeed();
+}
+
+function renderOverviewCategoryProgress() {
+  const container = document.getElementById('overview-category-progress-list');
+  if (!container) return;
+
+  if (productsCache.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: var(--admin-text-dim); padding: 1.5rem;">
+        No product categories in Firestore yet.
+      </div>
+    `;
+    return;
+  }
+
+  const categoryCounts = {};
+  productsCache.forEach(p => {
+    const cat = (p.category || 'UNCATEGORIZED').toUpperCase();
+    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+  });
+
+  const total = productsCache.length;
+
+  container.innerHTML = Object.entries(categoryCounts).map(([cat, count]) => {
+    const percent = Math.round((count / total) * 100);
+    return `
+      <div class="cat-progress-item">
+        <div class="cat-progress-labels">
+          <span style="color: var(--admin-text-main);">${cat}</span>
+          <span style="color: var(--admin-gold);">${count} Products (${percent}%)</span>
+        </div>
+        <div class="cat-progress-bar-bg">
+          <div class="cat-progress-bar-fill" style="width: ${percent}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderOverviewActivityFeed() {
+  const container = document.getElementById('overview-activity-feed');
+  if (!container) return;
+
+  const activities = [];
+
+  // Recent 5 enquiries
+  enquiriesCache.slice(0, 5).forEach(enq => {
+    activities.push({
+      type: 'ENQUIRY',
+      title: `New ${enq.formType || 'Lead'} from ${enq.fullName || 'Buyer'} (${enq.country || 'Global'})`,
+      time: enq.timestamp ? formatActivityDate(enq.timestamp) : 'Recently',
+      badge: 'new'
+    });
+  });
+
+  // Recent products
+  productsCache.slice(0, 5).forEach(prod => {
+    activities.push({
+      type: 'PRODUCT',
+      title: `Product catalog entry: ${prod.title} [${prod.category || 'EXPORT'}]`,
+      time: prod.createdAt ? formatActivityDate(prod.createdAt) : 'Catalog Active',
+      badge: 'product'
+    });
+  });
+
+  if (activities.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: var(--admin-text-dim); padding: 1.5rem;">
+        No recent activity logged yet.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = activities.slice(0, 7).map(act => `
+    <div class="activity-item">
+      <div class="activity-dot ${act.badge}"></div>
+      <div>
+        <div class="activity-desc">${act.title}</div>
+        <div class="activity-time">${act.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function formatActivityDate(ts) {
+  if (!ts) return 'Recently';
+  const dateObj = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* ==========================================================================
+   ENQUIRIES TABLE & DETAIL MODAL
+   ========================================================================== */
+
+function renderEnquiriesTable() {
+  const tbody = document.getElementById('enquiries-table-body');
   if (!tbody) return;
 
   const search = currentSearchQuery.trim().toLowerCase();
 
-  const filtered = allEnquiries.filter(item => {
-    // Form Type Filter
-    const matchesType = (currentFilterFormType === 'all') || (item.formType === currentFilterFormType);
-    
-    // Status Filter
-    const itemStatus = item.status || 'NEW_ENQUIRY';
-    const matchesStatus = (currentFilterStatus === 'all') || (itemStatus === currentFilterStatus);
+  const filtered = enquiriesCache.filter(item => {
+    const matchesForm = (currentFilterFormType === 'all') || (item.formType === currentFilterFormType);
+    const matchesStatus = (currentFilterStatus === 'all') || (item.status === currentFilterStatus);
 
-    // Search Query Filter
     const matchesSearch = !search ||
       (item.fullName && item.fullName.toLowerCase().includes(search)) ||
-      (item.companyName && item.companyName.toLowerCase().includes(search)) ||
       (item.email && item.email.toLowerCase().includes(search)) ||
+      (item.companyName && item.companyName.toLowerCase().includes(search)) ||
       (item.country && item.country.toLowerCase().includes(search)) ||
-      (item.productTitle && item.productTitle.toLowerCase().includes(search)) ||
-      (item.message && item.message.toLowerCase().includes(search));
+      (item.productTitle && item.productTitle.toLowerCase().includes(search));
 
-    return matchesType && matchesStatus && matchesSearch;
+    return matchesForm && matchesStatus && matchesSearch;
   });
 
   if (filtered.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align: center; padding: 3rem; color: var(--slate-light);">
-          <i class="fas fa-inbox fa-2x" style="margin-bottom: 0.5rem;"></i><br>
-          No enquiries matching current filter criteria.
+        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--admin-text-muted);">
+          <i class="fas fa-inbox" style="font-size: 2rem; color: var(--admin-text-dim); margin-bottom: 0.5rem; display: block;"></i>
+          No B2B lead enquiries matching current filter criteria.
         </td>
       </tr>
     `;
@@ -225,39 +310,27 @@ function renderDashboardTable() {
   }
 
   tbody.innerHTML = filtered.map(item => {
-    const formattedDate = formatDate(item.timestamp);
-    const formTypeBadge = getFormTypeBadge(item.formType);
-    const statusVal = item.status || 'NEW_ENQUIRY';
-    const statusClass = statusVal === 'NEW_ENQUIRY' ? 'status-new' : statusVal === 'CONTACTED' ? 'status-contacted' : 'status-closed';
+    const formattedDate = formatActivityDate(item.timestamp);
+    const statusClass = item.status === 'CLOSED' ? 'color: var(--admin-accent-green);' : (item.status === 'CONTACTED' ? 'color: var(--admin-accent-blue);' : 'color: var(--admin-gold); font-weight: 700;');
 
     return `
-      <tr data-id="${item.id}">
-        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${formattedDate}</td>
+      <tr>
+        <td style="font-size: 0.8rem; font-family: var(--font-mono);">${formattedDate}</td>
+        <td><span style="background: rgba(255,255,255,0.06); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase;">${item.formType || 'quote'}</span></td>
+        <td style="font-weight: 700; color: var(--admin-text-main);">${item.fullName || 'Anonymous'}</td>
+        <td>${item.companyName || 'N/A'}<br><span style="font-size: 0.78rem; color: var(--admin-text-muted);">&bull; ${item.country || 'Global'}</span></td>
+        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.productTitle || item.message || 'General Inquiry'}</td>
         <td>
-          <strong style="color: var(--white); font-size: 0.95rem;">${escapeHTML(item.fullName || 'N/A')}</strong><br>
-          <span style="font-size: 0.78rem; color: var(--slate-light);">${escapeHTML(item.email || '')}</span>
-        </td>
-        <td>
-          <span style="font-weight: 700; color: var(--white);">${escapeHTML(item.companyName || item.businessType || 'Direct Buyer')}</span><br>
-          <span style="font-size: 0.75rem; color: var(--slate-light);">${escapeHTML(item.phone || '')}</span>
-        </td>
-        <td>
-          <span style="color: var(--gold); font-weight: 700;">${escapeHTML(item.country || item.destinationPort || 'International')}</span>
-        </td>
-        <td>${formTypeBadge}</td>
-        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          ${escapeHTML(item.productTitle || item.message || 'No message details')}
-        </td>
-        <td>
-          <select onchange="updateLeadStatus('${item.id}', this.value)" class="status-select ${statusClass}">
-            <option value="NEW_ENQUIRY" ${statusVal === 'NEW_ENQUIRY' ? 'selected' : ''}>NEW_ENQUIRY</option>
-            <option value="CONTACTED" ${statusVal === 'CONTACTED' ? 'selected' : ''}>CONTACTED</option>
-            <option value="CLOSED" ${statusVal === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+          <select onchange="updateLeadStatus('${item.id}', this.value)" class="admin-select" style="padding: 0.25rem 0.5rem; font-size: 0.78rem; ${statusClass}">
+            <option value="NEW_ENQUIRY" ${item.status === 'NEW_ENQUIRY' ? 'selected' : ''}>NEW_ENQUIRY</option>
+            <option value="CONTACTED" ${item.status === 'CONTACTED' ? 'selected' : ''}>CONTACTED</option>
+            <option value="IN_PROGRESS" ${item.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+            <option value="CLOSED" ${item.status === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
           </select>
         </td>
-        <td style="text-align: center;">
-          <button onclick="openLeadDetailModal('${item.id}')" class="btn btn-outline-gold" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
-            <i class="fas fa-eye"></i> View
+        <td style="text-align: right;">
+          <button onclick="openLeadModal('${item.id}')" class="btn-card-action btn-card-edit" style="display: inline-flex; padding: 0.35rem 0.7rem; font-size: 0.78rem;">
+            <i class="fas fa-eye"></i> View Lead
           </button>
         </td>
       </tr>
@@ -265,461 +338,392 @@ function renderDashboardTable() {
   }).join('');
 }
 
-/**
- * Update Status in Firestore / LocalStorage
- */
 async function updateLeadStatus(docId, newStatus) {
+  if (!docId) return;
   try {
-    if (typeof firebase !== 'undefined' && firebase.firestore && db && firebase.apps.length && !docId.startsWith('local_')) {
-      await db.collection('enquiries').doc(docId).update({ status: newStatus });
-      console.log(`Status updated for doc ${docId}:`, newStatus);
-    } else {
-      // LocalStorage fallback update
-      const stored = JSON.parse(localStorage.getItem('inora_enquiries') || '[]');
-      const index = docId.replace('local_', '');
-      if (stored[index]) {
-        stored[index].status = newStatus;
-        localStorage.setItem('inora_enquiries', JSON.stringify(stored));
-      }
-    }
-    
-    // Update local state array & recalculate UI
-    const target = allEnquiries.find(e => e.id === docId);
-    if (target) target.status = newStatus;
-
-    updateMetrics();
-    renderDashboardTable();
-    showToast(`Lead status updated to ${newStatus}`, "success");
+    await db.collection('enquiries').doc(docId).update({
+      status: newStatus,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
   } catch (err) {
     console.error("Error updating lead status:", err);
-    showToast("Failed to update status in database.", "error");
+    alert("Failed to update lead status: " + err.message);
   }
 }
 
-/**
- * Open Modal with Full Lead Details
- */
-function openLeadDetailModal(leadId) {
-  const lead = allEnquiries.find(e => e.id === leadId);
+function openLeadModal(docId) {
+  const lead = enquiriesCache.find(e => e.id === docId);
   if (!lead) return;
 
-  const modal = document.getElementById('lead-detail-modal');
-  const nameEl = document.getElementById('modal-lead-name');
-  const badgeEl = document.getElementById('modal-lead-formtype');
-  const fieldsContainer = document.getElementById('modal-lead-fields');
-  const messageEl = document.getElementById('modal-lead-message');
-  const emailBtn = document.getElementById('modal-lead-email-btn');
-  const waBtn = document.getElementById('modal-lead-wa-btn');
+  const overlay = document.getElementById('lead-modal-overlay');
+  if (!overlay) return;
 
-  if (nameEl) nameEl.textContent = lead.fullName || 'Valued Buyer';
-  if (badgeEl) {
-    badgeEl.textContent = (lead.formType || 'ENQUIRY').toUpperCase();
-    badgeEl.className = `form-badge ${getBadgeClass(lead.formType)}`;
+  document.getElementById('modal-form-badge').textContent = (lead.formType || 'ENQUIRY').toUpperCase();
+  document.getElementById('modal-date-val').textContent = formatActivityDate(lead.timestamp);
+  document.getElementById('modal-buyer-name').textContent = lead.fullName || 'Buyer Lead';
+  document.getElementById('modal-buyer-company').textContent = `${lead.companyName || 'Private Business'} • ${lead.country || 'Global Market'}`;
+
+  document.getElementById('modal-email-val').textContent = lead.email || 'N/A';
+  document.getElementById('modal-phone-val').textContent = lead.phone || 'N/A';
+  document.getElementById('modal-businesstype-val').textContent = lead.businessType || 'N/A';
+  document.getElementById('modal-product-val').textContent = lead.productTitle || 'N/A';
+  document.getElementById('modal-quantity-val').textContent = lead.quantityNeeded || 'N/A';
+  document.getElementById('modal-port-val').textContent = lead.destinationPort || 'N/A';
+  document.getElementById('modal-message-val').textContent = lead.message || 'No additional message details provided.';
+
+  // Links
+  const emailLink = document.getElementById('modal-email-link');
+  if (emailLink) emailLink.href = `mailto:${lead.email}?subject=RE:%20INORA%20GLOBAL%20EXIM%20Quote%20Inquiry`;
+
+  const waLink = document.getElementById('modal-whatsapp-link');
+  if (waLink) {
+    const cleanPhone = lead.phone ? lead.phone.replace(/[^0-9]/g, '') : '';
+    waLink.href = cleanPhone ? `https://wa.me/${cleanPhone}?text=Hello%20${encodeURIComponent(lead.fullName || '')},%20following%20up%20from%20INORA%20GLOBAL%20EXIM.` : `https://wa.me/917200819993`;
   }
 
-  if (messageEl) messageEl.textContent = lead.message || 'No additional notes provided.';
-
-  // Build key-value fields
-  const fields = [
-    { label: 'Full Name', val: lead.fullName },
-    { label: 'Email Address', val: lead.email },
-    { label: 'Phone / Mobile', val: lead.phone || 'N/A' },
-    { label: 'Company / Firm', val: lead.companyName || lead.businessType || 'N/A' },
-    { label: 'Country of Import', val: lead.country || 'N/A' },
-    { label: 'Destination Port', val: lead.destinationPort || 'N/A' },
-    { label: 'Product / Category', val: lead.productTitle || lead.productCategory || 'N/A' },
-    { label: 'Quantity / Packaging', val: lead.quantity || lead.packagingSpec || 'N/A' },
-    { label: 'Incoterms Preferred', val: lead.incoterm || 'FOB / CIF' },
-    { label: 'Submitted Date', val: formatDate(lead.timestamp) }
-  ];
-
-  if (fieldsContainer) {
-    fieldsContainer.innerHTML = fields.map(f => `
-      <div class="detail-field">
-        <div class="detail-label">${f.label}</div>
-        <div class="detail-val">${escapeHTML(f.val || 'N/A')}</div>
-      </div>
-    `).join('');
-  }
-
-  // Update Action Buttons
-  if (emailBtn) {
-    emailBtn.href = `mailto:${lead.email}?subject=RE:%20INORA%20GLOBAL%20EXIM%20B2B%20Export%20Quotation%20Inquiry`;
-  }
-  if (waBtn) {
-    const cleanPhone = (lead.phone || '').replace(/[^0-9]/g, '');
-    waBtn.href = cleanPhone ? `https://wa.me/${cleanPhone}` : `https://wa.me/917200819993?text=Hello%20${encodeURIComponent(lead.fullName || '')}`;
-  }
-
-  if (modal) modal.classList.add('active');
+  overlay.classList.add('open');
 }
 
 function closeLeadModal() {
-  const modal = document.getElementById('lead-detail-modal');
-  if (modal) modal.classList.remove('active');
+  const overlay = document.getElementById('lead-modal-overlay');
+  if (overlay) overlay.classList.remove('open');
 }
 
-/**
- * Export Filtered Enquiries to CSV File
- */
 function exportEnquiriesCSV() {
-  if (allEnquiries.length === 0) {
-    showToast("No enquiries available to export.", "error");
+  if (enquiriesCache.length === 0) {
+    alert("No enquiries available to export.");
     return;
   }
 
-  const search = currentSearchQuery.trim().toLowerCase();
-  const filtered = allEnquiries.filter(item => {
-    const matchesType = (currentFilterFormType === 'all') || (item.formType === currentFilterFormType);
-    const itemStatus = item.status || 'NEW_ENQUIRY';
-    const matchesStatus = (currentFilterStatus === 'all') || (itemStatus === currentFilterStatus);
-    const matchesSearch = !search ||
-      (item.fullName && item.fullName.toLowerCase().includes(search)) ||
-      (item.companyName && item.companyName.toLowerCase().includes(search)) ||
-      (item.email && item.email.toLowerCase().includes(search)) ||
-      (item.country && item.country.toLowerCase().includes(search));
-
-    return matchesType && matchesStatus && matchesSearch;
-  });
-
-  const headers = ['Date', 'Form Type', 'Status', 'Full Name', 'Email', 'Phone', 'Company', 'Country', 'Destination Port', 'Product/Requirement', 'Quantity/Packaging', 'Message'];
-  
-  const rows = filtered.map(e => [
-    formatDate(e.timestamp),
-    e.formType || 'product_enquiry',
+  const headers = ["Timestamp", "Form Type", "Full Name", "Company", "Country", "Email", "Phone", "Product Title", "Quantity", "Status", "Message"];
+  const rows = enquiriesCache.map(e => [
+    formatActivityDate(e.timestamp),
+    e.formType || '',
+    `"${(e.fullName || '').replace(/"/g, '""')}"`,
+    `"${(e.companyName || '').replace(/"/g, '""')}"`,
+    `"${(e.country || '').replace(/"/g, '""')}"`,
+    `"${(e.email || '').replace(/"/g, '""')}"`,
+    `"${(e.phone || '').replace(/"/g, '""')}"`,
+    `"${(e.productTitle || '').replace(/"/g, '""')}"`,
+    `"${(e.quantityNeeded || '').replace(/"/g, '""')}"`,
     e.status || 'NEW_ENQUIRY',
-    e.fullName || '',
-    e.email || '',
-    e.phone || '',
-    e.companyName || e.businessType || '',
-    e.country || '',
-    e.destinationPort || '',
-    e.productTitle || e.productCategory || '',
-    e.quantity || e.packagingSpec || '',
-    (e.message || '').replace(/"/g, '""')
+    `"${(e.message || '').replace(/"/g, '""')}"`
   ]);
 
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-  ].join('\n');
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
+  const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
-  const today = new Date().toISOString().split('T')[0];
-
-  link.href = url;
-  link.setAttribute('download', `inora_b2b_enquiries_export_${today}.csv`);
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `INORA_B2B_Enquiries_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
-  showToast(`Successfully exported ${filtered.length} leads to CSV`, "success");
-}
-
-// Helpers
-function formatDate(timestamp) {
-  if (!timestamp) return 'N/A';
-  if (timestamp.toDate && typeof timestamp.toDate === 'function') {
-    return timestamp.toDate().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-  if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-    const d = new Date(timestamp);
-    if (!isNaN(d.getTime())) {
-      return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
-  }
-  return 'Just now';
-}
-
-function getFormTypeBadge(type) {
-  const badgeClass = getBadgeClass(type);
-  const label = type === 'quote' ? 'Quote Request' : type === 'sourcing' ? 'Custom Sourcing' : type === 'contact' ? 'Contact Us' : 'Product Catalogue';
-  return `<span class="form-badge ${badgeClass}">${label}</span>`;
-}
-
-function getBadgeClass(type) {
-  switch (type) {
-    case 'quote': return 'badge-quote';
-    case 'sourcing': return 'badge-sourcing';
-    case 'contact': return 'badge-contact';
-    default: return 'badge-product';
-  }
-}
-
-function escapeHTML(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function showToast(msg, type = "info") {
-  const toast = document.createElement('div');
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: ${type === 'error' ? '#EF4444' : '#10B981'};
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    z-index: 3000;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    transition: opacity 0.3s ease;
-  `;
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => toast.remove(), 300);
-  }, 3500);
 }
 
 /* ==========================================================================
-   PRODUCT CATALOGUE CRUD MANAGEMENT
+   PRODUCTS CRUD CONTROLLER
    ========================================================================== */
 
-let adminProductsList = [];
+function renderAdminProductsGrid() {
+  const grid = document.getElementById('admin-products-grid');
+  if (!grid) return;
 
-// Initialize Products Firestore Listener
-function initProductsAdmin() {
-  // Pre-populate adminProductsList immediately from INORA_PRODUCTS
-  if (typeof INORA_PRODUCTS !== 'undefined' && INORA_PRODUCTS.length > 0) {
-    adminProductsList = INORA_PRODUCTS.map(p => ({ docId: p.id, ...p }));
-    renderProductsAdminTable();
-  }
+  const filtered = productsCache.filter(p => {
+    const matchesCategory = (currentProductCategoryFilter === 'all') || (p.category === currentProductCategoryFilter);
+    const search = currentProductSearchQuery.trim().toLowerCase();
 
-  if (typeof firebase !== 'undefined' && firebase.firestore && db) {
-    db.collection('products').onSnapshot(async (snapshot) => {
-      if (snapshot.empty) {
-        // Seed default products if collection is brand new
-        console.log("Seeding initial product catalogue into Firestore...");
-        const defaultProds = typeof INORA_PRODUCTS !== 'undefined' ? INORA_PRODUCTS : [];
-        for (const prod of defaultProds) {
-          await db.collection('products').doc(prod.id).set(prod);
-        }
-      } else {
-        adminProductsList = [];
-        snapshot.forEach(doc => {
-          adminProductsList.push({ docId: doc.id, ...doc.data() });
-        });
-        renderProductsAdminTable();
-      }
-    }, (err) => {
-      console.warn("Firestore products listener warning:", err);
-      renderProductsAdminTable();
-    });
-  }
-}
+    const matchesSearch = !search ||
+      (p.title && p.title.toLowerCase().includes(search)) ||
+      (p.category && p.category.toLowerCase().includes(search)) ||
+      (p.description && p.description.toLowerCase().includes(search)) ||
+      (p.items && p.items.some && p.items.some(i => i.toLowerCase().includes(search)));
 
-// Section Switcher (Enquiries vs Products)
-function switchAdminSection(section, element) {
-  document.querySelectorAll('.sidebar-link').forEach(link => link.classList.remove('active'));
-  if (element) element.classList.add('active');
+    return matchesCategory && matchesSearch;
+  });
 
-  const enquiriesSec = document.getElementById('section-enquiries');
-  const productsSec = document.getElementById('section-products');
-  const titleEl = document.getElementById('admin-current-section-title');
-  const exportBtn = document.getElementById('export-csv-btn');
-
-  if (section === 'products') {
-    if (enquiriesSec) enquiriesSec.style.display = 'none';
-    if (productsSec) productsSec.style.display = 'block';
-    if (titleEl) titleEl.textContent = "LIVE PRODUCT CATALOGUE MANAGEMENT";
-    if (exportBtn) exportBtn.style.display = 'none';
-    initProductsAdmin();
-  } else {
-    if (productsSec) productsSec.style.display = 'none';
-    if (enquiriesSec) enquiriesSec.style.display = 'block';
-    if (titleEl) titleEl.textContent = "B2B ENQUIRIES & QUOTE LEADS";
-    if (exportBtn) exportBtn.style.display = 'block';
-  }
-}
-
-// Render Products Table
-function renderProductsAdminTable() {
-  const tbody = document.getElementById('products-crud-table-body');
-  if (!tbody) return;
-
-  if (adminProductsList.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" style="text-align: center; padding: 2rem; color: var(--slate-light);">
-          No export products found. Click <strong>ADD NEW PRODUCT</strong> above to create one.
-        </td>
-      </tr>
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1;">
+        <div class="admin-empty-state">
+          <div class="empty-state-icon"><i class="fas fa-boxes"></i></div>
+          <div class="empty-state-title">No Products Found</div>
+          <div class="empty-state-desc">No export products found matching your search or category filter. Add your first product document to Firestore.</div>
+          <button onclick="openAddProductModal()" class="btn-admin-gold">
+            <i class="fas fa-plus"></i> Add New Product
+          </button>
+        </div>
+      </div>
     `;
     return;
   }
 
-  tbody.innerHTML = adminProductsList.map(prod => {
-    const itemsText = Array.isArray(prod.items) ? prod.items.join(', ') : (prod.items || '-');
-    const moqText = prod.specs ? (prod.specs.moq || 'Based on requirement') : 'Based on requirement';
-    const imgUrl = prod.image || 'assets/images/logo-web.png';
+  grid.innerHTML = filtered.map(p => `
+    <div class="admin-product-card">
+      <div class="admin-product-img-wrap">
+        <img src="${p.image || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80'}" alt="${p.title}">
+        <span class="admin-product-cat-tag">${p.category || 'EXPORT'}</span>
+      </div>
+      <div class="admin-product-body">
+        <h3 class="admin-product-title">${p.title || 'Untitled Product'}</h3>
+        <p class="admin-product-desc">${p.description || 'No description provided.'}</p>
 
-    return `
-      <tr>
-        <td>
-          <img src="${escapeHTML(imgUrl)}" alt="${escapeHTML(prod.title)}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--navy-border);">
-        </td>
-        <td>
-          <strong style="color: var(--white); font-size: 0.9rem;">${escapeHTML(prod.title)}</strong>
-          <div style="font-size: 0.75rem; color: var(--slate-light);">ID: ${escapeHTML(prod.id || prod.docId)}</div>
-        </td>
-        <td><span class="form-badge badge-product">${escapeHTML(prod.category)}</span></td>
-        <td><strong style="color: var(--gold); font-size: 0.8rem;">${escapeHTML(prod.stampLabel || prod.category)}</strong></td>
-        <td style="max-width: 200px; font-size: 0.8rem; color: var(--slate-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-          ${escapeHTML(itemsText)}
-        </td>
-        <td style="font-size: 0.8rem; color: var(--slate-light);">
-          MOQ: ${escapeHTML(moqText)}
-        </td>
-        <td>
-          <div style="display: flex; gap: 0.4rem;">
-            <button onclick="openEditProductModal('${escapeHTML(prod.docId)}')" class="btn btn-navy" style="padding: 0.4rem 0.6rem; font-size: 0.75rem;" title="Edit Product">
-              <i class="fas fa-edit text-gold"></i>
-            </button>
-            <button onclick="deleteProductItem('${escapeHTML(prod.docId)}')" class="btn btn-navy" style="padding: 0.4rem 0.6rem; font-size: 0.75rem; color: #EF4444;" title="Delete Product">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+        <div class="admin-product-items">
+          ${(Array.isArray(p.items) ? p.items : []).map(item => `<span class="admin-item-chip">${item}</span>`).join('')}
+        </div>
+
+        <div class="admin-product-actions">
+          <button onclick="openEditProductModal('${p.id}')" class="btn-card-action btn-card-edit">
+            <i class="fas fa-edit"></i> Edit Specs
+          </button>
+          <button onclick="deleteProduct('${p.id}', '${escapeQuotes(p.title)}')" class="btn-card-action btn-card-delete">
+            <i class="fas fa-trash-alt"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
-// Modal Handlers
-function openAddProductModal() {
-  const form = document.getElementById('product-crud-form');
-  if (form) form.reset();
+function escapeQuotes(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
 
+function filterAdminProducts() {
+  const searchInput = document.getElementById('product-search-input');
+  const catSelect = document.getElementById('product-category-filter');
+
+  if (searchInput) currentProductSearchQuery = searchInput.value;
+  if (catSelect) currentProductCategoryFilter = catSelect.value;
+
+  renderAdminProductsGrid();
+}
+
+function openAddProductModal() {
   document.getElementById('pm-doc-id').value = '';
-  document.getElementById('product-modal-title').innerHTML = '<i class="fas fa-box-open"></i> Add Export Product';
-  document.getElementById('product-modal-overlay').classList.add('open');
+  document.getElementById('pm-title').value = '';
+  document.getElementById('pm-category').value = 'RICE';
+  document.getElementById('pm-description').value = '';
+  document.getElementById('pm-items').value = '';
+  document.getElementById('pm-image-url').value = '';
+  document.getElementById('pm-origin').value = 'India';
+  document.getElementById('pm-forms').value = 'Based on buyer requirement';
+  document.getElementById('pm-packaging').value = 'Based on buyer requirement';
+  document.getElementById('pm-moq').value = 'Based on buyer requirement';
+  document.getElementById('pm-capacity').value = 'Based on buyer requirement';
+
+  document.getElementById('image-preview-box').style.display = 'none';
+  document.getElementById('product-modal-heading').innerHTML = '<i class="fas fa-plus-circle"></i> Add Export Product Document';
+
+  const overlay = document.getElementById('product-modal-overlay');
+  if (overlay) overlay.classList.add('open');
 }
 
 function openEditProductModal(docId) {
-  const prod = adminProductsList.find(p => p.docId === docId || p.id === docId);
+  const prod = productsCache.find(p => p.id === docId);
   if (!prod) return;
 
-  document.getElementById('pm-doc-id').value = prod.docId || prod.id;
-  document.getElementById('pm-id').value = prod.id || '';
-  document.getElementById('pm-stamp').value = prod.stampLabel || prod.category || '';
+  document.getElementById('pm-doc-id').value = prod.id;
   document.getElementById('pm-title').value = prod.title || '';
-  document.getElementById('pm-category').value = prod.category || '';
+  document.getElementById('pm-category').value = (prod.category || 'RICE').toUpperCase();
   document.getElementById('pm-description').value = prod.description || '';
   document.getElementById('pm-items').value = Array.isArray(prod.items) ? prod.items.join(', ') : (prod.items || '');
   document.getElementById('pm-image-url').value = prod.image || '';
-  document.getElementById('pm-origin').value = prod.specs ? (prod.specs.origin || 'India') : 'India';
-  document.getElementById('pm-packaging').value = prod.specs ? (prod.specs.packaging || '5kg, 10kg, 25kg, 50kg PP / Jute Bags') : '5kg, 10kg, 25kg, 50kg PP / Jute Bags';
-  document.getElementById('pm-moq').value = prod.specs ? (prod.specs.moq || 'Based on buyer requirement') : 'Based on buyer requirement';
-  document.getElementById('pm-capacity').value = prod.specs ? (prod.specs.capacity || 'Based on buyer requirement') : 'Based on buyer requirement';
 
-  document.getElementById('product-modal-title').innerHTML = '<i class="fas fa-edit"></i> Edit Export Product';
-  document.getElementById('product-modal-overlay').classList.add('open');
+  const specs = prod.specs || {};
+  document.getElementById('pm-origin').value = prod.origin || specs.origin || 'India';
+  document.getElementById('pm-forms').value = prod.forms || specs.forms || specs.type || 'Based on buyer requirement';
+  document.getElementById('pm-packaging').value = prod.packaging || specs.packaging || 'Based on buyer requirement';
+  document.getElementById('pm-moq').value = prod.moq || specs.moq || 'Based on buyer requirement';
+  document.getElementById('pm-capacity').value = prod.capacity || specs.capacity || 'Based on buyer requirement';
+
+  if (prod.image) {
+    const previewBox = document.getElementById('image-preview-box');
+    const previewImg = document.getElementById('pm-image-preview');
+    if (previewBox && previewImg) {
+      previewImg.src = prod.image;
+      previewBox.style.display = 'flex';
+    }
+  }
+
+  document.getElementById('product-modal-heading').innerHTML = `<i class="fas fa-edit"></i> Edit ${prod.title}`;
+
+  const overlay = document.getElementById('product-modal-overlay');
+  if (overlay) overlay.classList.add('open');
 }
 
 function closeProductModal() {
-  const modal = document.getElementById('product-modal-overlay');
-  if (modal) modal.classList.remove('open');
+  const overlay = document.getElementById('product-modal-overlay');
+  if (overlay) overlay.classList.remove('open');
 }
 
-// Cloudinary File Upload Integration
-async function handleProductCloudinaryUpload(input) {
-  if (!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  const statusEl = document.getElementById('cloudinary-upload-status');
-  const btn = document.getElementById('cloudinary-upload-btn');
+async function handleProductFormSubmit(e) {
+  e.preventDefault();
+
+  const docId = document.getElementById('pm-doc-id').value.trim();
+  const title = document.getElementById('pm-title').value.trim();
+  const category = document.getElementById('pm-category').value.trim();
+  const description = document.getElementById('pm-description').value.trim();
+  const itemsString = document.getElementById('pm-items').value.trim();
+  const image = document.getElementById('pm-image-url').value.trim();
+  const origin = document.getElementById('pm-origin').value.trim() || 'India';
+  const forms = document.getElementById('pm-forms').value.trim() || 'Based on buyer requirement';
+  const packaging = document.getElementById('pm-packaging').value.trim() || 'Based on buyer requirement';
+  const moq = document.getElementById('pm-moq').value.trim() || 'Based on buyer requirement';
+  const capacity = document.getElementById('pm-capacity').value.trim() || 'Based on buyer requirement';
+
+  const items = itemsString.split(',').map(s => s.trim()).filter(Boolean);
+
+  const payload = {
+    title,
+    category,
+    stampLabel: category,
+    description,
+    items,
+    image,
+    origin,
+    forms,
+    packaging,
+    moq,
+    capacity,
+    specs: {
+      origin,
+      forms,
+      packaging,
+      moq,
+      capacity
+    },
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  const submitBtn = document.getElementById('save-product-submit-btn');
 
   try {
-    if (statusEl) statusEl.textContent = "Uploading photo to Cloudinary...";
-    if (btn) btn.disabled = true;
-
-    if (typeof uploadToCloudinary !== 'function') {
-      throw new Error("Cloudinary service script not loaded.");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving to Firestore...';
     }
 
-    const result = await uploadToCloudinary(file);
-    document.getElementById('pm-image-url').value = result.url;
-    if (statusEl) statusEl.textContent = "Photo uploaded successfully!";
-    showToast("Photo uploaded to Cloudinary!");
+    if (docId) {
+      // Update existing Firestore product document
+      await db.collection('products').doc(docId).update(payload);
+    } else {
+      // Create new Firestore product document
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('products').add(payload);
+    }
+
+    closeProductModal();
   } catch (err) {
-    console.error("Upload error:", err);
-    if (statusEl) statusEl.textContent = "Upload failed: " + err.message;
-    showToast("Upload failed: " + err.message, "error");
+    console.error("Error saving product to Firestore:", err);
+    alert("Failed to save product document: " + err.message);
   } finally {
-    if (btn) btn.disabled = false;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Product';
+    }
   }
 }
 
-// Save Product Form Handler
-document.addEventListener('DOMContentLoaded', () => {
-  const prodForm = document.getElementById('product-crud-form');
-  if (prodForm) {
-    prodForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const submitBtn = document.getElementById('save-product-submit-btn');
-
-      const docId = document.getElementById('pm-doc-id').value.trim();
-      const prodId = document.getElementById('pm-id').value.trim().toLowerCase().replace(/\s+/g, '-');
-      const stampLabel = document.getElementById('pm-stamp').value.trim().toUpperCase();
-      const title = document.getElementById('pm-title').value.trim();
-      const category = document.getElementById('pm-category').value.trim().toUpperCase();
-      const description = document.getElementById('pm-description').value.trim();
-      const itemsRaw = document.getElementById('pm-items').value.trim();
-      const items = itemsRaw.split(',').map(i => i.trim()).filter(Boolean);
-      const image = document.getElementById('pm-image-url').value.trim();
-      const origin = document.getElementById('pm-origin').value.trim();
-      const packaging = document.getElementById('pm-packaging').value.trim();
-      const moq = document.getElementById('pm-moq').value.trim();
-      const capacity = document.getElementById('pm-capacity').value.trim();
-
-      const payload = {
-        id: prodId,
-        stampLabel,
-        title,
-        category,
-        description,
-        items,
-        image,
-        specs: { origin, packaging, moq, capacity },
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      try {
-        if (submitBtn) submitBtn.disabled = true;
-
-        const targetId = docId || prodId;
-        await db.collection('products').doc(targetId).set(payload, { merge: true });
-
-        showToast("Product catalog updated successfully!");
-        closeProductModal();
-      } catch (err) {
-        console.error("Error saving product:", err);
-        showToast("Failed to save product: " + err.message, "error");
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
-      }
-    });
-  }
-});
-
-// Delete Product
-async function deleteProductItem(docId) {
-  if (!confirm("Are you sure you want to delete this export product from the live catalog?")) return;
+async function deleteProduct(docId, title) {
+  if (!docId) return;
+  const confirmed = confirm(`Are you sure you want to delete "${title}" from the live Firestore product catalog?\nThis action cannot be undone.`);
+  if (!confirmed) return;
 
   try {
     await db.collection('products').doc(docId).delete();
-    showToast("Product deleted from live catalog.");
   } catch (err) {
     console.error("Error deleting product:", err);
-    showToast("Failed to delete product: " + err.message, "error");
+    alert("Failed to delete product document: " + err.message);
+  }
+}
+
+/**
+ * Cloudinary File Upload Integration for Products
+ */
+async function handleProductCloudinaryUpload(fileInput) {
+  if (!fileInput || !fileInput.files || !fileInput.files[0]) return;
+
+  const file = fileInput.files[0];
+  const progressBox = document.getElementById('cloudinary-upload-progress');
+  const progressFill = document.getElementById('upload-progress-fill');
+  const statusText = document.getElementById('upload-status-text');
+
+  try {
+    if (progressBox) progressBox.style.display = 'block';
+    if (progressFill) progressFill.style.width = '30%';
+    if (statusText) statusText.textContent = `Uploading ${file.name} to Cloudinary...`;
+
+    if (typeof uploadToCloudinary !== 'function') {
+      throw new Error("uploadToCloudinary function unavailable in js/cloudinary.js");
+    }
+
+    const result = await uploadToCloudinary(file);
+
+    if (progressFill) progressFill.style.width = '100%';
+    if (statusText) statusText.textContent = "Upload successful!";
+
+    document.getElementById('pm-image-url').value = result.url;
+
+    const previewBox = document.getElementById('image-preview-box');
+    const previewImg = document.getElementById('pm-image-preview');
+    if (previewBox && previewImg) {
+      previewImg.src = result.url;
+      previewBox.style.display = 'flex';
+    }
+  } catch (err) {
+    console.error("Cloudinary Upload Error:", err);
+    if (statusText) statusText.textContent = "Upload failed: " + err.message;
+    alert("Cloudinary image upload failed: " + err.message);
+  }
+}
+
+/* ==========================================================================
+   ONE-TIME FIRESTORE PRODUCT SEED MIGRATION TOOL
+   ========================================================================== */
+
+async function triggerProductSeedMigration() {
+  if (typeof INORA_PRODUCTS === 'undefined' || !Array.isArray(INORA_PRODUCTS)) {
+    alert("Static INORA_PRODUCTS catalog array not found in js/products.js.");
+    return;
+  }
+
+  const confirmed = confirm(`This will seed ${INORA_PRODUCTS.length} default agricultural product categories into your Cloud Firestore "products" collection.\n\nProceed?`);
+  if (!confirmed) return;
+
+  const seedBtn = document.getElementById('migrate-seed-btn');
+  try {
+    if (seedBtn) {
+      seedBtn.disabled = true;
+      seedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding Firestore...';
+    }
+
+    for (const prod of INORA_PRODUCTS) {
+      const payload = {
+        title: prod.title,
+        category: prod.category,
+        stampLabel: prod.stampLabel || prod.category,
+        description: prod.description,
+        items: prod.items || [],
+        image: prod.image,
+        origin: (prod.specs && prod.specs.origin) || "India",
+        forms: (prod.specs && (prod.specs.forms || prod.specs.type)) || "Based on buyer requirement",
+        packaging: (prod.specs && prod.specs.packaging) || "Based on buyer requirement",
+        moq: (prod.specs && prod.specs.moq) || "Based on buyer requirement",
+        capacity: (prod.specs && prod.specs.capacity) || "Based on buyer requirement",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection('products').doc(prod.id).set(payload, { merge: true });
+    }
+
+    alert("Successfully seeded product catalog to Firestore!");
+  } catch (err) {
+    console.error("Product seed migration error:", err);
+    alert("Migration failed: " + err.message);
+  } finally {
+    if (seedBtn) {
+      seedBtn.disabled = false;
+      seedBtn.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> Seed Products to Firestore';
+    }
   }
 }

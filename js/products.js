@@ -117,13 +117,29 @@ function initFirestoreProducts() {
       if (!snapshot.empty) {
         const firestoreProducts = [];
         snapshot.forEach((doc) => {
+          const data = doc.data();
           firestoreProducts.push({
             id: doc.id,
-            ...doc.data()
+            title: data.title || '',
+            category: data.category || '',
+            stampLabel: data.stampLabel || data.category || '',
+            description: data.description || '',
+            image: data.image || '',
+            items: Array.isArray(data.items) ? data.items : [],
+            origin: data.origin || (data.specs && data.specs.origin) || 'India',
+            specs: data.specs || {
+              origin: data.origin || 'India',
+              forms: data.forms || 'Based on buyer requirement',
+              packaging: data.packaging || 'Based on buyer requirement',
+              moq: data.moq || 'Based on buyer requirement',
+              capacity: data.capacity || 'Based on buyer requirement'
+            }
           });
         });
         INORA_PRODUCTS = firestoreProducts;
-        renderProductGrid('products-grid');
+        renderProductGrid('main-products-grid');
+        renderProductGrid('catalog-products-grid');
+        initProductDetail();
       }
     }, (err) => {
       console.warn("Firestore products fetch warning:", err);
@@ -204,6 +220,10 @@ function renderProductGrid(containerId, categoryFilter = 'all', searchQuery = ''
       </div>
     </div>
   `).join('');
+
+  if (typeof window.initProductCardsAnimation === 'function') {
+    window.initProductCardsAnimation();
+  }
 }
 
 // Initialize Catalog Page Search & Filter Tab Listeners
