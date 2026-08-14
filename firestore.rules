@@ -6,14 +6,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /enquiries/{doc} {
-      // Public forms can submit leads (must provide fullName and email)
-      allow create: if request.resource.data.keys().hasAll(['fullName','email']);
+      // Public site forms can submit lead enquiries
+      allow create: if true;
       
-      // Reading lead lists and updating lead status requires an authenticated admin session
-      allow read, update: if request.auth != null;
-      
-      // Accidental deletion protection
-      allow delete: if false;
+      // Reading lead lists, updating status, and deleting requires an authenticated admin session
+      allow read, update, delete: if request.auth != null;
     }
 
     match /products/{doc} {

@@ -19,7 +19,9 @@ let db = null;
 // Initialize Firebase if CDN script loaded, else graceful fallback
 try {
   if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     db = firebase.firestore();
     console.log("Firebase initialized successfully.");
   } else {
@@ -30,40 +32,42 @@ try {
 }
 
 /**
- * Save B2B Enquiry to Firestore or Local Fallback
+ * Save B2B Enquiry to Firestore
  * @param {Object} enquiryData 
  * @returns {Promise<boolean>}
  */
 async function saveB2BEnquiry(enquiryData) {
   const isFirestoreActive = (typeof firebase !== 'undefined' && firebase.firestore && db);
-  const payload = {
-    ...enquiryData,
-    timestamp: isFirestoreActive ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
-    status: enquiryData.status || "NEW_ENQUIRY",
-    platform: "INORA_GLOBAL_WEB"
-  };
 
-  // Always persist in local storage cache for immediate offline & admin availability
-  try {
-    const existing = JSON.parse(localStorage.getItem("inora_enquiries") || "[]");
-    existing.unshift({
-      ...payload,
-      id: "loc_" + Date.now(),
-      timestamp: new Date().toISOString()
-    });
-    localStorage.setItem("inora_enquiries", JSON.stringify(existing));
-  } catch (e) {
-    console.warn("LocalStorage cache warning:", e);
-  }
+  const payload = {
+    fullName: enquiryData.fullName || '',
+    email: enquiryData.email || '',
+    phone: enquiryData.phone || '',
+    companyName: enquiryData.companyName || '',
+    country: enquiryData.country || '',
+    businessType: enquiryData.businessType || '',
+    productTitle: enquiryData.productTitle || '',
+    quantityNeeded: enquiryData.quantityNeeded || '',
+    packagingSpec: enquiryData.packagingSpec || '',
+    destinationPort: enquiryData.destinationPort || '',
+    message: enquiryData.message || '',
+    formType: enquiryData.formType || 'product_enquiry',
+    status: enquiryData.status || "NEW_ENQUIRY",
+    platform: "INORA_GLOBAL_WEB",
+    timestamp: isFirestoreActive ? firebase.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
+  };
 
   try {
     if (db) {
-      await db.collection("enquiries").add(payload);
-      console.log("Enquiry saved to Firestore:", payload);
+      const docRef = await db.collection("enquiries").add(payload);
+      console.log("Enquiry saved successfully to Firestore with ID:", docRef.id);
+      return true;
+    } else {
+      console.error("Firestore database instance not active.");
+      return false;
     }
-    return true;
   } catch (error) {
     console.error("Error submitting enquiry to Firestore:", error);
-    return true;
+    return false;
   }
 }

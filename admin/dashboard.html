@@ -332,15 +332,16 @@
             </div>
 
             <div class="admin-form-group">
-              <label class="admin-label" for="pm-category">Category *</label>
-              <select id="pm-category" class="admin-select" required>
-                <option value="RICE">RICE</option>
-                <option value="SPICES">SPICES</option>
-                <option value="VALUE-ADDED POWDERS">VALUE-ADDED POWDERS</option>
-                <option value="FRESH FRUITS & VEGETABLES">FRESH FRUITS & VEGETABLES</option>
-                <option value="PEANUT">PEANUT</option>
-                <option value="DEHYDRATED PRODUCTS">DEHYDRATED PRODUCTS</option>
-              </select>
+              <label class="admin-label" for="pm-category">Category * (Select or Type New)</label>
+              <input type="text" id="pm-category" class="admin-input" list="category-options" required placeholder="e.g. RICE, SPICES, GRAINS, OILS">
+              <datalist id="category-options">
+                <option value="RICE">
+                <option value="SPICES">
+                <option value="VALUE-ADDED POWDERS">
+                <option value="FRESH FRUITS & VEGETABLES">
+                <option value="PEANUT">
+                <option value="DEHYDRATED PRODUCTS">
+              </datalist>
             </div>
 
             <div class="admin-form-group full-width">

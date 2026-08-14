@@ -13,6 +13,7 @@ let currentFilterStatus = 'all';
 let currentSearchQuery = '';
 let currentProductSearchQuery = '';
 let currentProductCategoryFilter = 'all';
+let isAutoSeedingRunning = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   initAdminDashboard();
@@ -96,16 +97,11 @@ function initAdminDashboard() {
       productsCache = prods;
       renderAdminProductsGrid();
       updateOverviewMetrics();
+      updateCategoryDatalistAndFilter();
 
-      // Show seed migration banner if products collection is completely empty
-      const banner = document.getElementById('seed-migration-banner');
-      const seedBtn = document.getElementById('migrate-seed-btn');
-      if (prods.length === 0) {
-        if (banner) banner.style.display = 'block';
-        if (seedBtn) seedBtn.style.display = 'inline-flex';
-      } else {
-        if (banner) banner.style.display = 'none';
-        if (seedBtn) seedBtn.style.display = 'none';
+      // Auto-seed initial 6 products if Firestore collection is empty
+      if (prods.length === 0 && !isAutoSeedingRunning) {
+        autoSeedDefaultProducts();
       }
     }, (err) => {
       console.error("Firestore products fetch error:", err);
@@ -156,17 +152,14 @@ function switchMainTab(tabId) {
    ========================================================================== */
 
 function updateOverviewMetrics() {
-  // Unread enquiries
   const unreadCount = enquiriesCache.filter(e => e.status === 'NEW_ENQUIRY' || !e.status).length;
   const closedCount = enquiriesCache.filter(e => e.status === 'CLOSED').length;
 
-  // Header badges
   const unreadBadge = document.getElementById('sidebar-unread-count');
   const prodBadge = document.getElementById('sidebar-product-count');
   if (unreadBadge) unreadBadge.textContent = unreadCount;
   if (prodBadge) prodBadge.textContent = productsCache.length;
 
-  // Overview stats
   const statProd = document.getElementById('overview-stat-products');
   const statEnq = document.getElementById('overview-stat-enquiries');
   const statNew = document.getElementById('overview-stat-new');
@@ -177,10 +170,7 @@ function updateOverviewMetrics() {
   if (statNew) statNew.textContent = unreadCount;
   if (statClosed) statClosed.textContent = closedCount;
 
-  // Render Category Progress Bars
   renderOverviewCategoryProgress();
-
-  // Render Activity Feed
   renderOverviewActivityFeed();
 }
 
@@ -227,7 +217,6 @@ function renderOverviewActivityFeed() {
 
   const activities = [];
 
-  // Recent 5 enquiries
   enquiriesCache.slice(0, 5).forEach(enq => {
     activities.push({
       type: 'ENQUIRY',
@@ -237,11 +226,10 @@ function renderOverviewActivityFeed() {
     });
   });
 
-  // Recent products
   productsCache.slice(0, 5).forEach(prod => {
     activities.push({
       type: 'PRODUCT',
-      title: `Product catalog entry: ${prod.title} [${prod.category || 'EXPORT'}]`,
+      title: `Product entry: ${prod.title} [${prod.category || 'EXPORT'}]`,
       time: prod.createdAt ? formatActivityDate(prod.createdAt) : 'Catalog Active',
       badge: 'product'
     });
@@ -371,7 +359,6 @@ function openLeadModal(docId) {
   document.getElementById('modal-port-val').textContent = lead.destinationPort || 'N/A';
   document.getElementById('modal-message-val').textContent = lead.message || 'No additional message details provided.';
 
-  // Links
   const emailLink = document.getElementById('modal-email-link');
   if (emailLink) emailLink.href = `mailto:${lead.email}?subject=RE:%20INORA%20GLOBAL%20EXIM%20Quote%20Inquiry`;
 
@@ -424,12 +411,33 @@ function exportEnquiriesCSV() {
    PRODUCTS CRUD CONTROLLER
    ========================================================================== */
 
+function updateCategoryDatalistAndFilter() {
+  const filterSelect = document.getElementById('product-category-filter');
+  const datalist = document.getElementById('category-options');
+
+  const uniqueCats = new Set(['RICE', 'SPICES', 'VALUE-ADDED POWDERS', 'FRESH FRUITS & VEGETABLES', 'PEANUT', 'DEHYDRATED PRODUCTS']);
+  productsCache.forEach(p => {
+    if (p.category) uniqueCats.add(p.category.toUpperCase());
+  });
+
+  if (filterSelect) {
+    const currentVal = filterSelect.value;
+    filterSelect.innerHTML = `<option value="all">All Categories</option>` + Array.from(uniqueCats).map(cat => `
+      <option value="${cat}" ${currentVal === cat ? 'selected' : ''}>${cat}</option>
+    `).join('');
+  }
+
+  if (datalist) {
+    datalist.innerHTML = Array.from(uniqueCats).map(cat => `<option value="${cat}">`).join('');
+  }
+}
+
 function renderAdminProductsGrid() {
   const grid = document.getElementById('admin-products-grid');
   if (!grid) return;
 
   const filtered = productsCache.filter(p => {
-    const matchesCategory = (currentProductCategoryFilter === 'all') || (p.category === currentProductCategoryFilter);
+    const matchesCategory = (currentProductCategoryFilter === 'all') || (p.category && p.category.toUpperCase() === currentProductCategoryFilter);
     const search = currentProductSearchQuery.trim().toLowerCase();
 
     const matchesSearch = !search ||
@@ -447,7 +455,7 @@ function renderAdminProductsGrid() {
         <div class="admin-empty-state">
           <div class="empty-state-icon"><i class="fas fa-boxes"></i></div>
           <div class="empty-state-title">No Products Found</div>
-          <div class="empty-state-desc">No export products found matching your search or category filter. Add your first product document to Firestore.</div>
+          <div class="empty-state-desc">No export products match your current filter. Click "Add New Product" to create a new category or product item.</div>
           <button onclick="openAddProductModal()" class="btn-admin-gold">
             <i class="fas fa-plus"></i> Add New Product
           </button>
@@ -501,7 +509,7 @@ function filterAdminProducts() {
 function openAddProductModal() {
   document.getElementById('pm-doc-id').value = '';
   document.getElementById('pm-title').value = '';
-  document.getElementById('pm-category').value = 'RICE';
+  document.getElementById('pm-category').value = '';
   document.getElementById('pm-description').value = '';
   document.getElementById('pm-items').value = '';
   document.getElementById('pm-image-url').value = '';
@@ -524,7 +532,7 @@ function openEditProductModal(docId) {
 
   document.getElementById('pm-doc-id').value = prod.id;
   document.getElementById('pm-title').value = prod.title || '';
-  document.getElementById('pm-category').value = (prod.category || 'RICE').toUpperCase();
+  document.getElementById('pm-category').value = (prod.category || '').toUpperCase();
   document.getElementById('pm-description').value = prod.description || '';
   document.getElementById('pm-items').value = Array.isArray(prod.items) ? prod.items.join(', ') : (prod.items || '');
   document.getElementById('pm-image-url').value = prod.image || '';
@@ -561,7 +569,7 @@ async function handleProductFormSubmit(e) {
 
   const docId = document.getElementById('pm-doc-id').value.trim();
   const title = document.getElementById('pm-title').value.trim();
-  const category = document.getElementById('pm-category').value.trim();
+  const category = document.getElementById('pm-category').value.trim().toUpperCase();
   const description = document.getElementById('pm-description').value.trim();
   const itemsString = document.getElementById('pm-items').value.trim();
   const image = document.getElementById('pm-image-url').value.trim();
@@ -604,10 +612,8 @@ async function handleProductFormSubmit(e) {
     }
 
     if (docId) {
-      // Update existing Firestore product document
       await db.collection('products').doc(docId).update(payload);
     } else {
-      // Create new Firestore product document
       payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('products').add(payload);
     }
@@ -638,7 +644,7 @@ async function deleteProduct(docId, title) {
 }
 
 /**
- * Cloudinary File Upload Integration for Products
+ * Cloudinary File Upload Integration for Products with Friendly Error Handling
  */
 async function handleProductCloudinaryUpload(fileInput) {
   if (!fileInput || !fileInput.files || !fileInput.files[0]) return;
@@ -673,30 +679,27 @@ async function handleProductCloudinaryUpload(fileInput) {
   } catch (err) {
     console.error("Cloudinary Upload Error:", err);
     if (statusText) statusText.textContent = "Upload failed: " + err.message;
-    alert("Cloudinary image upload failed: " + err.message);
+
+    if (err.message && err.message.includes("Upload preset not found")) {
+      alert("Cloudinary Upload Preset Notice:\n\nThe preset 'tgixhf95' was not found in Cloudinary.\n\nTo enable direct file uploads:\n1. Log into your Cloudinary console -> Settings -> Upload -> Add unsigned preset named 'tgixhf95'.\n\n2. OR, simply paste any image web URL directly in the Product Image input field!");
+    } else {
+      alert("Cloudinary image upload error: " + err.message + "\n\nYou can paste any direct image URL in the field below.");
+    }
   }
 }
 
 /* ==========================================================================
-   ONE-TIME FIRESTORE PRODUCT SEED MIGRATION TOOL
+   AUTO & MANUAL SEED MIGRATION FOR 6 DEFAULT FRONTEND PRODUCTS
    ========================================================================== */
 
-async function triggerProductSeedMigration() {
-  if (typeof INORA_PRODUCTS === 'undefined' || !Array.isArray(INORA_PRODUCTS)) {
-    alert("Static INORA_PRODUCTS catalog array not found in js/products.js.");
-    return;
-  }
+async function autoSeedDefaultProducts() {
+  if (isAutoSeedingRunning) return;
+  if (typeof INORA_PRODUCTS === 'undefined' || !Array.isArray(INORA_PRODUCTS) || INORA_PRODUCTS.length === 0) return;
 
-  const confirmed = confirm(`This will seed ${INORA_PRODUCTS.length} default agricultural product categories into your Cloud Firestore "products" collection.\n\nProceed?`);
-  if (!confirmed) return;
+  isAutoSeedingRunning = true;
+  console.log("Seeding default 6 frontend product items into Firestore...");
 
-  const seedBtn = document.getElementById('migrate-seed-btn');
   try {
-    if (seedBtn) {
-      seedBtn.disabled = true;
-      seedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding Firestore...';
-    }
-
     for (const prod of INORA_PRODUCTS) {
       const payload = {
         title: prod.title,
@@ -715,8 +718,32 @@ async function triggerProductSeedMigration() {
 
       await db.collection('products').doc(prod.id).set(payload, { merge: true });
     }
+    console.log("Successfully seeded default products into Firestore.");
+  } catch (err) {
+    console.error("Auto-seed error:", err);
+  } finally {
+    isAutoSeedingRunning = false;
+  }
+}
 
-    alert("Successfully seeded product catalog to Firestore!");
+async function triggerProductSeedMigration() {
+  if (typeof INORA_PRODUCTS === 'undefined' || !Array.isArray(INORA_PRODUCTS)) {
+    alert("Static INORA_PRODUCTS catalog array not found in js/products.js.");
+    return;
+  }
+
+  const confirmed = confirm(`This will seed ${INORA_PRODUCTS.length} default agricultural product categories into your Cloud Firestore "products" collection.\n\nProceed?`);
+  if (!confirmed) return;
+
+  const seedBtn = document.getElementById('migrate-seed-btn');
+  try {
+    if (seedBtn) {
+      seedBtn.disabled = true;
+      seedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding Firestore...';
+    }
+
+    await autoSeedDefaultProducts();
+    alert("Successfully seeded 6 default product categories to Firestore!");
   } catch (err) {
     console.error("Product seed migration error:", err);
     alert("Migration failed: " + err.message);
